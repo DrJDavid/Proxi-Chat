@@ -124,7 +124,11 @@ export type Database = {
           emoji?: string
           created_at?: string
         }
+
       }
+
     }
   }
+}
+}
 }
