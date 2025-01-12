@@ -58,6 +58,40 @@ export const messageApi = {
     return messages as Message[]
   },
 
+  async fetchDirectMessages(senderId: string, receiverId: string, options: {
+    limit?: number,
+    cursor?: string,
+  } = {}) {
+    const { limit = 50, cursor } = options
+    
+    let query = supabase
+      .from('messages')
+      .select(`
+        *,
+        user:users!sender_id(id, username, full_name, avatar_url, status),
+        reactions(
+          id,
+          emoji,
+          created_at,
+          user:users!user_id(id, username, avatar_url)
+        )
+      `)
+      .is('channel_id', null)
+      .is('parent_message_id', null)
+      .or(`sender_id.eq.${senderId},receiver_id.eq.${senderId}`)
+      .or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`)
+      .order('created_at', { ascending: true })
+      .limit(limit)
+    
+    if (cursor) {
+      query = query.lt('created_at', cursor)
+    }
+
+    const { data: messages, error } = await query
+    if (error) throw error
+    return messages as Message[]
+  },
+
   async sendMessage({ content, channelId, senderId, receiverId, parentMessageId }: {
     content: string
     channelId?: string
@@ -66,17 +100,19 @@ export const messageApi = {
     parentMessageId?: string
   }) {
     const now = new Date().toISOString()
+    const messageData = {
+      content,
+      channel_id: channelId,
+      sender_id: senderId,
+      receiver_id: receiverId,
+      parent_message_id: parentMessageId,
+      has_attachment: false,
+      created_at: now
+    }
+
     const { data, error } = await supabase
       .from('messages')
-      .insert({
-        content,
-        channel_id: channelId,
-        sender_id: senderId,
-        receiver_id: receiverId,
-        parent_message_id: parentMessageId,
-        has_attachment: false,
-        created_at: now
-      })
+      .insert(messageData)
       .select(`
         *,
         user:users!sender_id(id, username, full_name, avatar_url, status),
@@ -89,7 +125,10 @@ export const messageApi = {
       `)
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Error details:', error)
+      throw error
+    }
     return { ...data, reply_count: 0 } as Message
   },
 
@@ -169,5 +208,19 @@ export const messageApi = {
 
     if (error) throw error
     return data as Message[]
+  },
+
+  async fetchRecentDirectMessageUsers(userId: string) {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('sender_id, receiver_id, created_at')
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .is('channel_id', null)
+      .is('parent_message_id', null)
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (error) throw error
+    return data
   }
 } 

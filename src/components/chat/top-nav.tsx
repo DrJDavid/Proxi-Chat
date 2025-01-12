@@ -1,95 +1,102 @@
 "use client"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Menu, Search, Sun, Moon, User, LogOut } from "lucide-react"
-import { useTheme } from "next-themes"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
+import { User, LogOut, Settings, Sun, Moon, Laptop } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MobileSidebar } from "@/components/chat/mobile-sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useToast } from "@/components/ui/use-toast"
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
+} from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useUserStore } from '@/store/user'
+import { getInitials } from '@/lib/utils'
+import { toast } from 'sonner'
+import supabase from '@/lib/supabase/client'
 
 export function TopNav() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-  const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const { user } = useUserStore()
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [displayName, setDisplayName] = useState(user?.username || '')
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  if (!user) return null
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut()
-      router.push("/auth/login")
+      router.push('/auth/login')
     } catch (error) {
-      toast({
-        title: "Error signing out",
-        description: "Please try again",
-        variant: "destructive"
-      })
+      console.error('Error signing out:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to sign out')
+      }
+    }
+  }
+
+  const handleUpdateDisplayName = async () => {
+    if (!displayName.trim() || displayName === user.username) return
+    setIsUpdating(true)
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ username: displayName.trim() })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      toast.success('Display name updated successfully')
+      setIsSettingsOpen(false)
+    } catch (error) {
+      console.error('Error updating display name:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to update display name')
+      }
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b bg-background px-4">
-      <div className="flex items-center gap-4">
-        <MobileSidebar />
-        <Link
-          href="/chat"
-          className="flex items-center gap-2 font-semibold"
-        >
-          <span className="hidden md:inline-block">ProxiChat</span>
-        </Link>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center px-4">
-        <div className="w-full max-w-2xl">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search messages..."
-              className="pl-8"
-            />
-          </div>
-        </div>
-      </div>
-
+    <div className="flex items-center justify-between h-14 px-4 border-b">
+      <h1 className="text-lg font-semibold">ProxiChat</h1>
+      
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
+                {user.avatar_url && (
+                  <AvatarImage
+                    src={user.avatar_url}
+                    alt={`${user.username}'s avatar`}
+                  />
+                )}
                 <AvatarFallback>
-                  <User className="h-4 w-4" />
+                  {user.username ? getInitials(user.username) : '??'}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -97,10 +104,37 @@ export function TopNav() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Profile
+            <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                {theme === 'light' ? (
+                  <Sun className="mr-2 h-4 w-4" />
+                ) : theme === 'dark' ? (
+                  <Moon className="mr-2 h-4 w-4" />
+                ) : (
+                  <Laptop className="mr-2 h-4 w-4" />
+                )}
+                Theme
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => setTheme('light')}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')}>
+                  <Laptop className="mr-2 h-4 w-4" />
+                  System
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
@@ -108,6 +142,40 @@ export function TopNav() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </header>
+
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Enter your display name"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsSettingsOpen(false)}
+                disabled={isUpdating}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateDisplayName}
+                disabled={!displayName.trim() || displayName === user.username || isUpdating}
+              >
+                {isUpdating ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 } 

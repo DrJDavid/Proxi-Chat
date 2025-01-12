@@ -2,28 +2,43 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req: request, res })
-  const { data: { session } } = await supabase.auth.getSession()
+  const supabase = createMiddlewareClient({ req, res })
+  const { data: { session }, error } = await supabase.auth.getSession()
 
-  // If user is not signed in and the current path is not /auth/*, redirect to /auth/login
-  if (!session && !request.nextUrl.pathname.startsWith('/auth/')) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/auth/login'
-    return NextResponse.redirect(redirectUrl)
+  // If there's an error getting the session, redirect to login
+  if (error) {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // If user is signed in and the current path is /auth/*, redirect to /chat
-  if (session && request.nextUrl.pathname.startsWith('/auth/')) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/chat'
-    return NextResponse.redirect(redirectUrl)
+  // Auth routes - redirect to chat if already authenticated
+  if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/register') {
+    if (session) {
+      return NextResponse.redirect(new URL('/chat', req.url))
+    }
+    return res
+  }
+
+  // Protected routes - redirect to login if not authenticated
+  if (req.nextUrl.pathname.startsWith('/chat')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
+    return res
+  }
+
+  // Root route - redirect to chat if authenticated, login if not
+  if (req.nextUrl.pathname === '/') {
+    if (session) {
+      return NextResponse.redirect(new URL('/chat', req.url))
+    }
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
   return res
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images).*)'],
+  matcher: ['/', '/login', '/register', '/chat/:path*']
 } 

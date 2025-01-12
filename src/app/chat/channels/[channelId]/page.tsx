@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation"
 import { Hash, MessageCircle, Paperclip, Send, SmilePlus } from "lucide-react"
 import { useCallback, useState, KeyboardEvent, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -17,6 +18,8 @@ import { toast } from "sonner"
 import { channelApi } from "@/lib/api/channels"
 import { getInitials } from "@/lib/utils"
 import { EmojiPicker } from "@/components/ui/emoji-picker"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { FileUpload } from "@/components/chat/file-upload"
 
 export default function ChannelPage() {
   const { channelId } = useParams() as { channelId: string }
@@ -26,6 +29,8 @@ export default function ChannelPage() {
   const [channelUuid, setChannelUuid] = useState<string | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
+  const [showFileUpload, setShowFileUpload] = useState(false)
+  const router = useRouter()
 
   // Fetch user data on mount
   useEffect(() => {
@@ -39,6 +44,7 @@ export default function ChannelPage() {
         const channel = await channelApi.getChannelByName(channelId)
         if (!channel) {
           toast.error('Channel not found')
+          router.push('/chat')
           return
         }
         setChannelUuid(channel.id)
@@ -49,11 +55,12 @@ export default function ChannelPage() {
         } else {
           toast.error('Failed to load channel')
         }
+        router.push('/chat')
       }
     }
 
     getChannelUuid()
-  }, [channelId])
+  }, [channelId, router])
 
   const fetchChannelMessages = useCallback(async () => {
     if (!channelUuid) return []
@@ -128,6 +135,29 @@ export default function ChannelPage() {
     }
   }
 
+  const handleFileUpload = async (fileUrl: string) => {
+    if (!user || !channelUuid) return
+
+    try {
+      await messageApi.sendMessage({
+        content: `[File shared](${fileUrl})`,
+        channelId: channelUuid,
+        senderId: user.id
+      })
+
+      setShowFileUpload(false)
+      await fetchChannelMessages()
+      toast.success('File shared successfully')
+    } catch (error) {
+      console.error('Error sharing file:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to share file')
+      }
+    }
+  }
+
   const channelMessages = messages[channelId] || []
 
   if (!user || !channelUuid) {
@@ -178,7 +208,20 @@ export default function ChannelPage() {
                       })}
                     </span>
                   </div>
-                  <p className="text-sm">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">
+                    {message.content.startsWith('[File shared]') ? (
+                      <a 
+                        href={message.content.match(/\((.*?)\)/)?.[1]} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        View shared file
+                      </a>
+                    ) : (
+                      message.content
+                    )}
+                  </p>
                   
                   {/* Reactions */}
                   <div className="flex items-center gap-2 mt-2">
@@ -237,6 +280,22 @@ export default function ChannelPage() {
 
         <div className="p-4 border-t">
           <div className="flex items-center gap-2">
+            <Dialog open={showFileUpload} onOpenChange={setShowFileUpload}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0">
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Upload File</DialogTitle>
+                </DialogHeader>
+                <FileUpload
+                  channelId={channelUuid ?? undefined}
+                  onUploadComplete={handleFileUpload}
+                />
+              </DialogContent>
+            </Dialog>
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -244,25 +303,24 @@ export default function ChannelPage() {
               className="min-h-[80px]"
               onKeyDown={handleKeyPress}
             />
-            <div className="flex flex-col gap-2">
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <Paperclip className="h-5 w-5" />
-              </Button>
-              <Button onClick={handleSubmit} size="icon" className="shrink-0">
-                <Send className="h-5 w-5" />
-              </Button>
-            </div>
+            <Button 
+              onClick={handleSubmit} 
+              size="icon"
+              className="shrink-0"
+              disabled={!message.trim()}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
 
       {selectedMessage && (
-        <div className="w-[400px]">
-          <MessageThread
-            parentMessage={selectedMessage}
-            onClose={() => setSelectedMessage(null)}
-          />
-        </div>
+        <MessageThread
+          message={selectedMessage}
+          onClose={() => setSelectedMessage(null)}
+          onReply={fetchChannelMessages}
+        />
       )}
     </div>
   )

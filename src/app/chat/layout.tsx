@@ -3,19 +3,17 @@
 import { TopNav } from "@/components/chat/top-nav"
 import { Sidebar } from "@/components/chat/sidebar"
 
-export default function ChatLayout({
-  children,
-}: {
+interface ChatLayoutProps {
   children: React.ReactNode
-}) {
+}
+
+export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar className="hidden md:flex" />
-      <div className="flex flex-1 flex-col">
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
         <TopNav />
-        <main className="flex-1 overflow-hidden">
-          {children}
-        </main>
+        {children}
       </div>
     </div>
   )
