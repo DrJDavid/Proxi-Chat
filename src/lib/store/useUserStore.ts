@@ -15,7 +15,9 @@ interface UserStore {
 }
 
 let pollingInterval: NodeJS.Timeout | null = null
-const POLLING_INTERVAL = 10000 // 10 seconds
+let heartbeatInterval: NodeJS.Timeout | null = null
+const POLLING_INTERVAL = 3000 // 3 seconds
+const HEARTBEAT_INTERVAL = 5000 // 5 seconds
 
 export const useUserStore = create<UserStore>((set, get) => ({
   users: [],
@@ -31,57 +33,76 @@ export const useUserStore = create<UserStore>((set, get) => ({
         u.id === user.id ? user : u
       )
     }))
+    // Start polling when current user is set
+    get().startPolling()
   },
 
   startPolling: () => {
     if (pollingInterval) return
 
-    // Initial fetch
+    // Initial fetch and status update
     get().fetchUsers()
+    const currentUser = get().currentUser
+    if (currentUser) {
+      get().updateCurrentUserStatus('online')
+    }
 
-    // Set up polling every 10 seconds
+    // Set up polling every 3 seconds
     pollingInterval = setInterval(() => {
       get().fetchUsers()
     }, POLLING_INTERVAL)
 
     // Update current user's status to online and set up heartbeat
-    const currentUser = get().currentUser
     if (currentUser) {
-      get().updateCurrentUserStatus('online')
-      
-      // Update last_seen every 30 seconds while online
-      const heartbeatInterval = setInterval(() => {
+      // Update last_seen every 5 seconds while online
+      heartbeatInterval = setInterval(async () => {
         const user = get().currentUser
-        if (user && user.status === 'online') {
-          get().updateCurrentUserStatus('online')
+        if (user) {
+          try {
+            await userApi.updateLastSeen(user.id)
+            await userApi.updateStatus(user.id, 'online')
+          } catch (error) {
+            console.error('Error updating last seen:', error)
+          }
         }
-      }, 30000)
+      }, HEARTBEAT_INTERVAL)
 
-      // Clean up heartbeat on window unload
+      // Set up visibility change handler
+      document.addEventListener('visibilitychange', async () => {
+        const user = get().currentUser
+        if (!user) return
+
+        if (document.visibilityState === 'visible') {
+          await get().updateCurrentUserStatus('online')
+        } else {
+          await get().updateCurrentUserStatus('away')
+        }
+      })
+
+      // Set up beforeunload handler to mark user as offline
       window.addEventListener('beforeunload', () => {
-        clearInterval(heartbeatInterval)
+        const user = get().currentUser
+        if (user) {
+          // Using fetch directly since beforeunload doesn't wait for async
+          fetch('/api/users/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'offline' }),
+            keepalive: true
+          })
+        }
       })
     }
-
-    // Set up beforeunload handler to mark user as offline
-    window.addEventListener('beforeunload', () => {
-      const currentUser = get().currentUser
-      if (currentUser) {
-        // Using fetch directly since beforeunload doesn't wait for async
-        fetch('/api/users/status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'offline' }),
-          keepalive: true
-        })
-      }
-    })
   },
 
   stopPolling: () => {
     if (pollingInterval) {
       clearInterval(pollingInterval)
       pollingInterval = null
+    }
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval)
+      heartbeatInterval = null
     }
   },
 

@@ -15,6 +15,7 @@ interface ChannelState {
   clearChannels: () => void
   incrementUnread: (channelId: string) => void
   clearUnread: (channelId: string) => void
+  addChannel: (channel: Channel, shouldSelect?: boolean) => void
 }
 
 export const useChannelStore = create<ChannelState>((set) => ({
@@ -83,5 +84,20 @@ export const useChannelStore = create<ChannelState>((set) => ({
         [channelId]: 0
       }
     }))
+  },
+
+  addChannel: (channel: Channel, shouldSelect = false) => {
+    console.log('Adding new channel:', channel)
+    set((state) => {
+      const newState: Partial<ChannelState> = {
+        channels: [...state.channels, channel].sort((a, b) => a.name.localeCompare(b.name))
+      }
+      
+      if (shouldSelect) {
+        newState.selectedChannel = channel
+      }
+      
+      return newState
+    })
   }
 })) 

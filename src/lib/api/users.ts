@@ -88,6 +88,31 @@ export const userApi = {
     }
   },
 
+  async updateLastSeen(userId: string) {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          last_seen: new Date().toISOString(),
+          status: 'online' // Also update status to ensure consistency
+        })
+        .eq('id', userId)
+
+      if (error) {
+        console.error('Supabase error in updateLastSeen:', error as PostgrestError)
+        throw error
+      }
+    } catch (err) {
+      const error = err as Error
+      console.error('Error in updateLastSeen:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      })
+      throw error
+    }
+  },
+
   async getCurrentUser() {
     try {
       console.log('Getting current user...')

@@ -158,7 +158,6 @@ export function Sidebar() {
                   </DialogHeader>
                   <CreateChannel onClose={() => {
                     setIsCreateChannelOpen(false)
-                    refreshChannels()
                   }} />
                 </DialogContent>
               </Dialog>

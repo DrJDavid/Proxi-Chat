@@ -128,11 +128,45 @@ export const channelApi = {
       throw new Error('Only the channel creator can delete this channel')
     }
 
+    // First get all message IDs in this channel
+    const { data: messages } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('channel_id', channelId)
+
+    if (messages && messages.length > 0) {
+      const messageIds = messages.map(m => m.id)
+      
+      // Delete all reactions to messages in this channel
+      const { error: reactionsError } = await supabase
+        .from('reactions')
+        .delete()
+        .in('message_id', messageIds)
+
+      if (reactionsError) throw reactionsError
+    }
+
+    // Delete all messages in the channel
+    const { error: messagesError } = await supabase
+      .from('messages')
+      .delete()
+      .eq('channel_id', channelId)
+
+    if (messagesError) throw messagesError
+
+    // Delete all channel members
+    const { error: membersError } = await supabase
+      .from('channel_members')
+      .delete()
+      .eq('channel_id', channelId)
+
+    if (membersError) throw membersError
+
+    // Finally delete the channel
     const { error } = await supabase
       .from('channels')
       .delete()
       .eq('id', channelId)
-      .eq('created_by', session.user.id)
 
     if (error) throw error
   },

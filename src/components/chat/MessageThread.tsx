@@ -86,6 +86,26 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
     if (!replyContent.trim() || !user) return
 
     try {
+      // Optimistically update the UI
+      const optimisticReply = {
+        id: `temp-${Date.now()}`,
+        content: replyContent.trim(),
+        channel_id: message.channel_id,
+        sender_id: user.id,
+        parent_message_id: message.id,
+        created_at: new Date().toISOString(),
+        user,
+        reactions: []
+      }
+
+      // Update local replies state
+      setReplies(prev => [...prev, optimisticReply])
+      setReplyContent('')
+
+      // Update parent message reply count
+      if (onReply) await onReply()
+
+      // Make the API call
       const reply = await messageApi.sendMessage({
         content: replyContent.trim(),
         channelId: message.channel_id,
@@ -93,9 +113,8 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
         parentMessageId: message.id
       })
 
-      setReplies(prev => [...prev, reply])
-      setReplyContent('')
-      if (onReply) await onReply()
+      // Update with actual reply from server
+      setReplies(prev => prev.map(r => r.id === optimisticReply.id ? reply : r))
     } catch (error) {
       console.error('Error sending reply:', error)
       if (error instanceof Error) {
@@ -103,6 +122,8 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
       } else {
         toast.error('Failed to send reply')
       }
+      // Revert optimistic update
+      await fetchReplies()
     }
   }
 

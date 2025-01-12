@@ -169,13 +169,29 @@ export default function ChannelPage() {
     if (!message.trim() || !currentUser || !channelUuid) return
 
     try {
+      // Optimistically add the message
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        content: message,
+        channel_id: channelUuid,
+        sender_id: currentUser.id,
+        created_at: new Date().toISOString(),
+        user: currentUser,
+        reactions: [],
+        reply_count: 0
+      }
+
+      setMessages(channelId, [...channelMessages, optimisticMessage])
+      setMessage("")
+
+      // Make the API call
       await messageApi.sendMessage({
         content: message,
         channelId: channelUuid,
         senderId: currentUser.id
       })
 
-      setMessage("")
+      // Fetch latest state
       await fetchChannelMessages()
     } catch (error) {
       if (error instanceof Error) {
@@ -184,6 +200,8 @@ export default function ChannelPage() {
         toast.error("Failed to send message")
       }
       console.error('Error sending message:', error)
+      // Revert optimistic update on error
+      await fetchChannelMessages()
     }
   }
 
@@ -198,11 +216,50 @@ export default function ChannelPage() {
     if (!currentUser) return
 
     try {
+      // Optimistically update the UI
+      const message = channelMessages.find(m => m.id === messageId)
+      if (message) {
+        const existingReaction = message.reactions?.find(
+          r => r.emoji === emoji && r.user?.id === currentUser.id
+        )
+
+        let updatedReactions = message.reactions || []
+        if (existingReaction) {
+          // Remove reaction
+          updatedReactions = updatedReactions.filter(r => r.id !== existingReaction.id)
+        } else {
+          // Add reaction
+          updatedReactions = [
+            ...updatedReactions,
+            {
+              id: `temp-${Date.now()}`,
+              emoji,
+              created_at: new Date().toISOString(),
+              user: {
+                id: currentUser.id,
+                username: currentUser.username,
+                avatar_url: currentUser.avatar_url
+              }
+            }
+          ]
+        }
+
+        const updatedMessage = {
+          ...message,
+          reactions: updatedReactions
+        }
+
+        updateMessage(channelId, messageId, updatedMessage)
+      }
+
+      // Make the API call
       await messageApi.addReaction({
         messageId,
         userId: currentUser.id,
         emoji
       })
+
+      // Fetch latest state
       await fetchChannelMessages()
     } catch (error) {
       console.error('Error adding reaction:', error)
@@ -211,6 +268,8 @@ export default function ChannelPage() {
       } else {
         toast.error('Failed to add reaction')
       }
+      // Revert optimistic update on error
+      await fetchChannelMessages()
     }
   }
 
@@ -310,6 +369,18 @@ export default function ChannelPage() {
     await fetchChannels()
     setSelectedChannel(updatedChannel)
     // If name changed, URL will update via the effect above
+  }
+
+  const handleMessageReply = async (parentMessage: Message) => {
+    // Optimistically update the reply count
+    const updatedMessage = {
+      ...parentMessage,
+      reply_count: (parentMessage.reply_count || 0) + 1
+    }
+    updateMessage(channelId, parentMessage.id, updatedMessage)
+    
+    // Fetch actual state
+    await fetchChannelMessages()
   }
 
   const channelMessages = allMessages[channelId] || []
@@ -465,18 +536,24 @@ export default function ChannelPage() {
                   
                   {/* Reactions */}
                   <div className="flex items-center gap-2 mt-2">
-                    {message.reactions?.map((reaction, index) => (
+                    {message.reactions && message.reactions.length > 0 && message.reactions.reduce((acc, reaction) => {
+                      const existingReaction = acc.find(r => r.emoji === reaction.emoji);
+                      if (existingReaction) {
+                        existingReaction.count++;
+                      } else {
+                        acc.push({ emoji: reaction.emoji, count: 1 });
+                      }
+                      return acc;
+                    }, [] as { emoji: string; count: number }[]).map((reaction) => (
                       <Button
-                        key={`${reaction.emoji}-${index}`}
+                        key={reaction.emoji}
                         variant="ghost"
                         size="sm"
                         className="h-7 px-2"
                         onClick={() => handleReaction(message.id, reaction.emoji)}
                       >
                         <span className="mr-1">{reaction.emoji}</span>
-                        <span className="text-xs">
-                          {message.reactions?.filter(r => r.emoji === reaction.emoji).length}
-                        </span>
+                        <span className="text-xs">{reaction.count}</span>
                       </Button>
                     ))}
                     <div className="relative">
@@ -489,13 +566,13 @@ export default function ChannelPage() {
                         <SmilePlus className="h-4 w-4" />
                       </Button>
                       {showEmojiPicker === message.id && (
-                        <div className="absolute bottom-full mb-2">
+                        <div className="absolute bottom-full mb-2 z-50">
                           <EmojiPicker
                             onEmojiSelect={(emoji) => {
                               handleReaction(message.id, emoji)
                               setShowEmojiPicker(null)
                             }}
-                            onClickOutside={() => setShowEmojiPicker(null)}
+                            onClose={() => setShowEmojiPicker(null)}
                           />
                         </div>
                       )}
@@ -507,7 +584,7 @@ export default function ChannelPage() {
                       onClick={() => setSelectedMessage(message)}
                     >
                       <MessageCircle className="h-4 w-4" />
-                      {(message.reply_count ?? 0) > 0 && (
+                      {message.reply_count > 0 && (
                         <span className="ml-1 text-xs">{message.reply_count}</span>
                       )}
                     </Button>
@@ -561,7 +638,7 @@ export default function ChannelPage() {
           message={selectedMessage}
           onClose={() => setSelectedMessage(null)}
           onReply={async () => {
-            await fetchChannelMessages();
+            await handleMessageReply(selectedMessage)
           }}
         />
       )}

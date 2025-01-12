@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
-import { useDebounce } from '@/lib/hooks/useDebounce'
+import { useDebounce } from 'use-debounce'
 import { searchApi } from '@/lib/api/search'
 import { type Message, type User } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -28,6 +28,7 @@ export function SearchDialog() {
   const [isSearching, setIsSearching] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [debouncedQuery] = useDebounce(query, 300)
 
   const handleSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -48,12 +49,12 @@ export function SearchDialog() {
     }
   }, [channelId])
 
-  const debouncedSearch = useDebounce(handleSearch, 300)
+  useEffect(() => {
+    handleSearch(debouncedQuery)
+  }, [debouncedQuery, handleSearch])
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value
-    setQuery(newQuery)
-    debouncedSearch(newQuery)
+    setQuery(e.target.value)
   }
 
   const handleMessageClick = (message: Message) => {
@@ -118,18 +119,22 @@ export function SearchDialog() {
                     onClick={() => handleMessageClick(message)}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={message.user.avatar_url}
-                        alt={message.user.username}
-                      />
-                      <AvatarFallback>
-                        {getInitials(message.user.username)}
-                      </AvatarFallback>
+                      {message.user && (
+                        <>
+                          <AvatarImage
+                            src={message.user.avatar_url}
+                            alt={message.user.username}
+                          />
+                          <AvatarFallback>
+                            {getInitials(message.user.username)}
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">
-                          {message.user.username}
+                          {message.user?.username}
                         </p>
                         <span className="text-xs text-muted-foreground">
                           {new Date(message.created_at).toLocaleDateString()}

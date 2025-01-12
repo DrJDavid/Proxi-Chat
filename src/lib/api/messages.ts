@@ -79,8 +79,7 @@ export const messageApi = {
       `)
       .is('channel_id', null)
       .is('parent_message_id', null)
-      .or(`sender_id.eq.${senderId},receiver_id.eq.${senderId}`)
-      .or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`)
+      .or(`and(sender_id.eq.${senderId},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${senderId})`)
       .order('created_at', { ascending: true })
       .limit(limit)
     
@@ -90,6 +89,30 @@ export const messageApi = {
 
     const { data: messages, error } = await query
     if (error) throw error
+
+    // Fetch reply counts for each message
+    if (messages && messages.length > 0) {
+      const replyCounts = await Promise.all(
+        messages.map(async (message) => {
+          const { count, error } = await supabase
+            .from('messages')
+            .select('id', { count: 'exact', head: true })
+            .eq('parent_message_id', message.id)
+
+          if (error) throw error
+          return { messageId: message.id, count }
+        })
+      )
+
+      // Add reply counts to messages
+      const messagesWithReplyCounts = messages.map(message => ({
+        ...message,
+        reply_count: replyCounts.find(rc => rc.messageId === message.id)?.count || 0
+      }))
+
+      return messagesWithReplyCounts as Message[]
+    }
+
     return messages as Message[]
   },
 
@@ -320,9 +343,13 @@ export const messageApi = {
       if (!updatedMessage) {
         throw new Error('Failed to update message')
       }
-
       console.log('Message updated successfully:', updatedMessage)
-      return { ...updatedMessage, reply_count: 0 } as Message
+      // Cast to unknown first to handle type mismatch between DB and Message type
+      return { 
+        ...updatedMessage, 
+        reply_count: 0,
+        user: updatedMessage.user[0] // Convert user array to single user object
+      } as unknown as Message
     } catch (error) {
       console.error('Error in editMessage:', error)
       throw error
