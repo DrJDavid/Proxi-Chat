@@ -27,6 +27,7 @@ import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import supabase from '@/lib/supabase/client'
 import { userApi } from '@/lib/api/users'
+import { SearchDialog } from '@/components/chat/search-dialog'
 
 export function TopNav() {
   const router = useRouter()
@@ -254,6 +255,7 @@ export function TopNav() {
       </div>
 
       <div className="flex items-center gap-2">
+        <SearchDialog />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
