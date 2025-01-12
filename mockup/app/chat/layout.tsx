@@ -1,5 +1,8 @@
+'use client'
+
 import { TopNav } from '@/components/chat/top-nav'
 import { Sidebar } from '@/components/chat/sidebar'
+import { ReactNode } from 'react'
 
 export default function ChatLayout({
   children,
