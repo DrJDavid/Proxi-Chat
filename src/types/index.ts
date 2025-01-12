@@ -5,6 +5,8 @@ export interface User {
   created_at: string
   online?: boolean
   status?: 'online' | 'offline' | 'away'
+  status_message?: string
+  last_seen?: string
 }
 
 export interface Channel {

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { User, LogOut, Settings, Sun, Moon, Laptop, Home } from 'lucide-react'
+import { User, LogOut, Settings, Sun, Moon, Laptop, Home, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,9 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -25,20 +22,40 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/lib/store/useUserStore'
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import supabase from '@/lib/supabase/client'
+import { userApi } from '@/lib/api/users'
 
 export function TopNav() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-  const { user } = useUserStore()
+  const { currentUser: user, updateCurrentUserStatus, setCurrentUser } = useUserStore()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [displayName, setDisplayName] = useState(user?.username || '')
+  const [status, setStatus] = useState(user?.status_message || '')
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   if (!user) return null
+
+  const refreshUser = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user?.id)
+        .single()
+
+      if (error) throw error
+      if (data) {
+        setCurrentUser(data)
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -80,6 +97,138 @@ export function TopNav() {
     }
   }
 
+  const handleStatusUpdate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return
+    const newStatus = e.currentTarget.value.trim()
+    
+    try {
+      console.log('Updating status message:', { userId: user!.id, newStatus })
+      const { data, error } = await supabase
+        .from('users')
+        .update({ status_message: newStatus })
+        .eq('id', user!.id)
+        .select()
+        .single()
+
+      if (error) throw error
+      
+      // Update local state
+      setStatus(newStatus)
+      
+      // Update global state with the full user data
+      if (data) {
+        console.log('Updated user data:', data)
+        setCurrentUser(data)
+      }
+      
+      toast.success('Status updated')
+    } catch (error) {
+      console.error('Error updating status:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to update status')
+      }
+    }
+  }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingAvatar(true)
+    try {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB')
+      }
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('File must be an image (JPEG, PNG, or GIF)')
+      }
+
+      const fileExt = file.type.split('/')[1]
+      const fileName = `${user!.id}-${Date.now()}.${fileExt}`
+
+      console.log('Starting avatar upload:', { fileName, fileType: file.type, fileSize: file.size })
+
+      // First, try to get the bucket
+      const { data: bucketData, error: bucketError } = await supabase
+        .storage
+        .getBucket('avatars')
+
+      if (bucketError) {
+        console.error('Error checking avatars bucket:', bucketError)
+        // If bucket doesn't exist, try to create it
+        if (bucketError.message.includes('does not exist')) {
+          const { error: createError } = await supabase
+            .storage
+            .createBucket('avatars', { public: true })
+          if (createError) throw createError
+        } else {
+          throw bucketError
+        }
+      }
+
+      // Upload the file
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError)
+        throw uploadError
+      }
+
+      console.log('File uploaded successfully:', uploadData)
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+
+      console.log('Generated public URL:', publicUrl)
+
+      // Update user profile with new avatar URL
+      const { data: userData, error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user!.id)
+        .select()
+        .single()
+
+      if (updateError) {
+        console.error('Error updating user profile:', updateError)
+        throw updateError
+      }
+
+      console.log('User profile updated with new avatar:', userData)
+
+      // Update global state
+      if (userData) {
+        setCurrentUser(userData)
+        // Force a refresh of the users list
+        await userApi.fetchUsers()
+      }
+
+      toast.success('Avatar updated successfully')
+    } catch (error) {
+      console.error('Error in avatar upload process:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to upload avatar')
+      }
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
   return (
     <div className="flex items-center justify-between h-14 px-4 border-b">
       <div className="flex items-center gap-4">
@@ -94,7 +243,45 @@ export function TopNav() {
         <h1 className="text-lg font-semibold">ProxiChat</h1>
       </div>
       
+      <div className="flex-1 max-w-md mx-4">
+        <Input
+          placeholder="Set your status..."
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          onKeyDown={handleStatusUpdate}
+          className="h-8"
+        />
+      </div>
+
       <div className="flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              {theme === 'light' ? (
+                <Sun className="h-4 w-4" />
+              ) : theme === 'dark' ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Laptop className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setTheme('light')}>
+              <Sun className="mr-2 h-4 w-4" />
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('dark')}>
+              <Moon className="mr-2 h-4 w-4" />
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('system')}>
+              <Laptop className="mr-2 h-4 w-4" />
+              System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
@@ -116,34 +303,21 @@ export function TopNav() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
               <Settings className="mr-2 h-4 w-4" />
-              Settings
+              Change Display Name
             </DropdownMenuItem>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                {theme === 'light' ? (
-                  <Sun className="mr-2 h-4 w-4" />
-                ) : theme === 'dark' ? (
-                  <Moon className="mr-2 h-4 w-4" />
-                ) : (
-                  <Laptop className="mr-2 h-4 w-4" />
-                )}
-                Theme
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem onClick={() => setTheme('light')}>
-                  <Sun className="mr-2 h-4 w-4" />
-                  Light
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('dark')}>
-                  <Moon className="mr-2 h-4 w-4" />
-                  Dark
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('system')}>
-                  <Laptop className="mr-2 h-4 w-4" />
-                  System
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+            <DropdownMenuItem asChild>
+              <label className="flex items-center cursor-pointer">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Avatar
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                  disabled={isUploadingAvatar}
+                />
+              </label>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -156,7 +330,7 @@ export function TopNav() {
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
+            <DialogTitle>Change Display Name</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

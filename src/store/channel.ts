@@ -23,6 +23,7 @@ export const useChannelStore = create<ChannelState>((set) => ({
   unreadMessages: {},
   
   setSelectedChannel: (channel) => {
+    console.log('Setting selected channel:', channel)
     set({ selectedChannel: channel })
     if (channel) {
       // Clear unread count when selecting a channel
@@ -37,8 +38,22 @@ export const useChannelStore = create<ChannelState>((set) => ({
   
   fetchChannels: async () => {
     try {
+      console.log('Fetching channels...')
       const channels = await channelApi.getUserChannels()
+      console.log('Fetched channels:', channels)
       set({ channels })
+      
+      // Update selected channel if it exists in the new channels list
+      set((state) => {
+        if (state.selectedChannel) {
+          const updatedSelectedChannel = channels.find(c => c.id === state.selectedChannel?.id)
+          if (updatedSelectedChannel) {
+            console.log('Updating selected channel:', updatedSelectedChannel)
+            return { selectedChannel: updatedSelectedChannel }
+          }
+        }
+        return {}
+      })
     } catch (error) {
       console.error('Error fetching channels:', error)
       set({ channels: [], selectedChannel: null })

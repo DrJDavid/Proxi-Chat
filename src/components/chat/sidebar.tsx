@@ -41,12 +41,19 @@ function UserButton({ user, onClick }: UserButtonProps) {
           user.status === 'online' ? 'bg-green-500' : 'bg-gray-500'
         )} />
       </div>
-      <span className={cn(
-        'truncate',
-        user.status === 'online' ? 'text-foreground' : 'text-muted-foreground'
-      )}>
-        {user.username}
-      </span>
+      <div className="flex flex-col items-start">
+        <span className={cn(
+          'truncate',
+          user.status === 'online' ? 'text-foreground' : 'text-muted-foreground'
+        )}>
+          {user.username}
+        </span>
+        {user.status_message && (
+          <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+            {user.status_message}
+          </span>
+        )}
+      </div>
       <NotificationCounter userId={user.id} />
     </Button>
   )

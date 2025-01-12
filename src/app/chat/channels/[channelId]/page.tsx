@@ -11,10 +11,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MessageThread } from "@/components/chat/MessageThread"
 import { usePolling } from "@/hooks/usePolling"
 import { useMessagesStore } from "@/store/messages"
-import { useUserStore } from "@/store/user"
+import { useUserStore } from "@/lib/store/useUserStore"
 import { useChannelStore } from "@/store/channel"
 import { messageApi } from "@/lib/api/messages"
-import { type Message } from "@/types"
+import { type Message, type Channel, type User } from "@/types/index"
 import { toast } from "sonner"
 import { channelApi } from "@/lib/api/channels"
 import { getInitials } from "@/lib/utils"
@@ -24,12 +24,13 @@ import { FileUpload } from "@/components/chat/file-upload"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MessageContent } from "@/components/chat/MessageContent"
 import { RichTextInput } from "@/components/chat/RichTextInput"
+import { EditChannel } from "@/components/chat/edit-channel"
 
 export default function ChannelPage() {
   const { channelId } = useParams() as { channelId: string }
   const [message, setMessage] = useState("")
   const { messages: allMessages, setMessages, updateMessage } = useMessagesStore()
-  const { user, fetchUser } = useUserStore()
+  const { currentUser, startPolling } = useUserStore()
   const [channelUuid, setChannelUuid] = useState<string | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
@@ -41,23 +42,28 @@ export default function ChannelPage() {
   const lastFetchRef = useRef<number>(0)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [editContent, setEditContent] = useState("")
+  const [showEditChannel, setShowEditChannel] = useState(false)
 
-  // Fetch user data on mount
+  // Initialize user polling on mount
   useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
+    startPolling()
+  }, [startPolling])
 
   // Fetch channel UUID and set as selected channel on mount
   useEffect(() => {
     async function getChannelUuid() {
       try {
+        console.log('Fetching channel by name:', channelId)
         const channel = await channelApi.getChannelByName(channelId)
+        console.log('Channel data:', channel)
         if (!channel) {
           toast.error('Channel not found')
           router.push('/chat')
           return
         }
+        console.log('Setting channel UUID:', channel.id)
         setChannelUuid(channel.id)
+        console.log('Setting selected channel:', channel)
         setSelectedChannel(channel) // Set this channel as selected when we enter it
       } catch (error) {
         console.error('Error fetching channel:', error)
@@ -77,6 +83,28 @@ export default function ChannelPage() {
       setSelectedChannel(null)
     }
   }, [channelId, router, setSelectedChannel])
+
+  // Add debug effect for tracking selectedChannel and currentUser
+  useEffect(() => {
+    console.log('Current state:', {
+      selectedChannel,
+      currentUser,
+      channelCreatorId: selectedChannel?.creator?.id,
+      currentUserId: currentUser?.id,
+      isCreator: selectedChannel?.creator?.id === currentUser?.id
+    })
+  }, [selectedChannel, currentUser])
+
+  // Add effect to update URL when channel name changes
+  useEffect(() => {
+    if (selectedChannel && selectedChannel.name !== channelId) {
+      console.log('Channel name changed, updating URL:', {
+        from: channelId,
+        to: selectedChannel.name
+      })
+      router.replace(`/chat/channels/${selectedChannel.name}`)
+    }
+  }, [selectedChannel, channelId, router])
 
   const fetchChannelMessages = useCallback(async () => {
     if (!channelUuid) return []
@@ -138,13 +166,13 @@ export default function ChannelPage() {
   }, [channelUuid, fetchChannelMessages])
 
   const handleSubmit = async () => {
-    if (!message.trim() || !user || !channelUuid) return
+    if (!message.trim() || !currentUser || !channelUuid) return
 
     try {
       await messageApi.sendMessage({
         content: message,
         channelId: channelUuid,
-        senderId: user.id
+        senderId: currentUser.id
       })
 
       setMessage("")
@@ -167,12 +195,12 @@ export default function ChannelPage() {
   }
 
   const handleReaction = async (messageId: string, emoji: string) => {
-    if (!user) return
+    if (!currentUser) return
 
     try {
       await messageApi.addReaction({
         messageId,
-        userId: user.id,
+        userId: currentUser.id,
         emoji
       })
       await fetchChannelMessages()
@@ -187,13 +215,13 @@ export default function ChannelPage() {
   }
 
   const handleFileUpload = async (fileUrl: string) => {
-    if (!user || !channelUuid) return
+    if (!currentUser || !channelUuid) return
 
     try {
       await messageApi.sendMessage({
         content: `[File shared](${fileUrl})`,
         channelId: channelUuid,
-        senderId: user.id
+        senderId: currentUser.id
       })
 
       setShowFileUpload(false)
@@ -270,9 +298,23 @@ export default function ChannelPage() {
     }
   }
 
+  const handleEditChannel = () => {
+    if (!selectedChannel || !currentUser || selectedChannel.creator?.id !== currentUser.id) return
+    setShowEditChannel(true)
+  }
+
+  const handleEditSuccess = async (updatedChannel: Channel) => {
+    console.log('Channel edit successful:', updatedChannel)
+    setShowEditChannel(false)
+    // Force refresh the channel data
+    await fetchChannels()
+    setSelectedChannel(updatedChannel)
+    // If name changed, URL will update via the effect above
+  }
+
   const channelMessages = allMessages[channelId] || []
 
-  if (!user || !channelUuid) {
+  if (!currentUser || !channelUuid) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
@@ -288,44 +330,26 @@ export default function ChannelPage() {
             <Hash className="h-5 w-5" />
             <h1 className="text-lg font-semibold">{channelId}</h1>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {user.id === selectedChannel?.created_by && (
-                <DropdownMenuItem 
-                  className="text-destructive"
-                  onClick={async () => {
-                    if (!channelUuid) return
-                    if (!confirm('Are you sure you want to delete this channel? This will delete all messages and cannot be undone.')) return
-
-                    try {
-                      await channelApi.deleteChannel(channelUuid)
-                      await fetchChannels()
-                      toast.success('Channel deleted successfully')
-                      router.push('/chat')
-                    } catch (error) {
-                      console.error('Error deleting channel:', error)
-                      toast.error(error instanceof Error ? error.message : 'Failed to delete channel')
-                    }
-                  }}
-                >
-                  Delete Channel
-                </DropdownMenuItem>
-              )}
-              {user.id !== selectedChannel?.created_by && (
-                <DropdownMenuItem 
-                  className="text-destructive"
-                  onClick={handleLeaveChannel}
-                >
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {selectedChannel?.creator?.id === currentUser?.id && (
+                  <DropdownMenuItem onClick={handleEditChannel}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit Channel
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleLeaveChannel}>
                   Leave Channel
                 </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto p-4">
@@ -365,7 +389,7 @@ export default function ChannelPage() {
                         <span className="ml-1 text-xs text-muted-foreground">(edited)</span>
                       )}
                     </span>
-                    {message.user?.id === user.id && (
+                    {message.user?.id === currentUser.id && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
@@ -541,6 +565,21 @@ export default function ChannelPage() {
           }}
         />
       )}
+
+      <Dialog open={showEditChannel} onOpenChange={setShowEditChannel}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Channel</DialogTitle>
+          </DialogHeader>
+          {selectedChannel && (
+            <EditChannel
+              channel={selectedChannel}
+              onClose={() => setShowEditChannel(false)}
+              onSuccess={handleEditSuccess}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

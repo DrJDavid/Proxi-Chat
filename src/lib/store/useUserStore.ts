@@ -24,7 +24,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
   error: null,
 
   setCurrentUser: (user: User) => {
-    set({ currentUser: user })
+    set(state => ({
+      currentUser: user,
+      // Also update the user in the users array
+      users: state.users.map(u => 
+        u.id === user.id ? user : u
+      )
+    }))
   },
 
   startPolling: () => {
@@ -83,6 +89,16 @@ export const useUserStore = create<UserStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null })
       const users = await userApi.fetchUsers()
+      
+      // Keep the current user's data in sync
+      const currentUser = get().currentUser
+      if (currentUser) {
+        const updatedCurrentUser = users.find(u => u.id === currentUser.id)
+        if (updatedCurrentUser) {
+          set({ currentUser: updatedCurrentUser })
+        }
+      }
+      
       set({ users, isLoading: false })
     } catch (err) {
       set({ error: err as Error, isLoading: false })

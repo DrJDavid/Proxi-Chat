@@ -283,5 +283,72 @@ export const channelApi = {
     }
 
     return true
+  },
+
+  async editChannel(channelId: string, updates: { name?: string; description?: string }) {
+    // Get current user
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) throw sessionError
+    if (!session?.user) throw new Error('Not authenticated')
+
+    // Check if user is the creator
+    const { data: channel } = await supabase
+      .from('channels')
+      .select('created_by')
+      .eq('id', channelId)
+      .single()
+
+    if (!channel) {
+      throw new Error('Channel not found')
+    }
+
+    if (channel.created_by !== session.user.id) {
+      throw new Error('Only the channel creator can edit this channel')
+    }
+
+    // If updating name, check if it already exists
+    if (updates.name) {
+      const { data: existingChannel } = await supabase
+        .from('channels')
+        .select('id')
+        .eq('name', updates.name)
+        .neq('id', channelId)
+        .single()
+
+      if (existingChannel) {
+        throw new Error('A channel with this name already exists')
+      }
+    }
+
+    // First do the update
+    const { error: updateError } = await supabase
+      .from('channels')
+      .update(updates)
+      .eq('id', channelId)
+
+    if (updateError) throw updateError
+
+    // Then fetch the updated channel
+    const { data, error } = await supabase
+      .from('channels')
+      .select(`
+        *,
+        creator:users!created_by(
+          id,
+          username,
+          avatar_url
+        ),
+        member_count:channel_members(count)
+      `)
+      .eq('id', channelId)
+      .single()
+
+    if (error) throw error
+    if (!data) throw new Error('Failed to fetch updated channel')
+
+    return {
+      ...data,
+      member_count: data.member_count[0]?.count || 0
+    } as Channel
   }
 } 

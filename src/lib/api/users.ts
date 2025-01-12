@@ -15,7 +15,16 @@ export const userApi = {
       console.log('Fetching users...')
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, avatar_url, created_at, updated_at, status, last_seen')
+        .select(`
+          id,
+          username,
+          avatar_url,
+          created_at,
+          updated_at,
+          status,
+          status_message,
+          last_seen
+        `)
         .order('username')
 
       if (error) {
@@ -100,7 +109,16 @@ export const userApi = {
       console.log('Session user:', session.user)
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, avatar_url, created_at, updated_at, status, last_seen')
+        .select(`
+          id,
+          username,
+          avatar_url,
+          created_at,
+          updated_at,
+          status,
+          status_message,
+          last_seen
+        `)
         .eq('id', session.user.id)
         .single()
 
@@ -115,10 +133,7 @@ export const userApi = {
       }
 
       console.log('Current user data:', data)
-      return {
-        ...data,
-        status: data.status || 'offline'
-      } as User
+      return data as User
     } catch (err) {
       const error = err as Error
       console.error('Error in getCurrentUser:', {
