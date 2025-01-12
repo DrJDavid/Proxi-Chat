@@ -30,6 +30,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { channelApi } from "@/lib/api/channels"
 
+interface CreateChannelProps {
+  onChannelCreated?: () => void
+}
+
 const formSchema = z.object({
   name: z.string()
     .min(2, "Channel name must be at least 2 characters")
@@ -38,7 +42,7 @@ const formSchema = z.object({
   description: z.string().max(512, "Description must be less than 512 characters").optional(),
 })
 
-export function CreateChannel() {
+export function CreateChannel({ onChannelCreated }: CreateChannelProps) {
   const [open, setOpen] = React.useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,6 +55,7 @@ export function CreateChannel() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await channelApi.createChannel(values.name, values.description)
+      onChannelCreated?.()
       toast.success("Channel created successfully")
       setOpen(false)
       form.reset()

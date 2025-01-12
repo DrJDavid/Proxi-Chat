@@ -1,8 +1,7 @@
 import supabase from '@/lib/supabase/client'
-import { type Message, type Attachment, type Reaction } from '@/types'
+import { type Message, type Reaction } from '@/types'
 
 export const messageApi = {
-  // Fetch messages with pagination support
   async fetchMessages(channelId: string, options: {
     limit?: number,
     cursor?: string,
@@ -14,7 +13,6 @@ export const messageApi = {
       .select(`
         *,
         user:users!sender_id(id, username, full_name, avatar_url, status),
-        attachments(*),
         reactions(
           id,
           emoji,
@@ -24,19 +22,42 @@ export const messageApi = {
       `)
       .eq('channel_id', channelId)
       .is('parent_message_id', null) // Only fetch top-level messages
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
       .limit(limit)
     
     if (cursor) {
       query = query.lt('created_at', cursor)
     }
 
-    const { data, error } = await query
+    const { data: messages, error } = await query
     if (error) throw error
-    return data as Message[]
+
+    // Fetch reply counts for each message
+    if (messages && messages.length > 0) {
+      const replyCounts = await Promise.all(
+        messages.map(async (message) => {
+          const { count, error } = await supabase
+            .from('messages')
+            .select('id', { count: 'exact', head: true })
+            .eq('parent_message_id', message.id)
+
+          if (error) throw error
+          return { messageId: message.id, count }
+        })
+      )
+
+      // Add reply counts to messages
+      const messagesWithReplyCounts = messages.map(message => ({
+        ...message,
+        reply_count: replyCounts.find(rc => rc.messageId === message.id)?.count || 0
+      }))
+
+      return messagesWithReplyCounts as Message[]
+    }
+
+    return messages as Message[]
   },
 
-  // Send new message
   async sendMessage({ content, channelId, senderId, receiverId, parentMessageId }: {
     content: string
     channelId?: string
@@ -44,22 +65,21 @@ export const messageApi = {
     receiverId?: string
     parentMessageId?: string
   }) {
+    const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('messages')
-      .insert([
-        {
-          content,
-          channel_id: channelId,
-          sender_id: senderId,
-          receiver_id: receiverId,
-          parent_message_id: parentMessageId,
-          has_attachment: false
-        }
-      ])
+      .insert({
+        content,
+        channel_id: channelId,
+        sender_id: senderId,
+        receiver_id: receiverId,
+        parent_message_id: parentMessageId,
+        has_attachment: false,
+        created_at: now
+      })
       .select(`
         *,
         user:users!sender_id(id, username, full_name, avatar_url, status),
-        attachments(*),
         reactions(
           id,
           emoji,
@@ -70,49 +90,81 @@ export const messageApi = {
       .single()
 
     if (error) throw error
-    return data as Message
+    return { ...data, reply_count: 0 } as Message
   },
 
-  // Get messages newer than a timestamp
-  async getLatestMessages(channelId: string, after: string) {
+  async addReaction({ messageId, userId, emoji }: {
+    messageId: string
+    userId: string
+    emoji: string
+  }) {
+    const { data: existingReaction } = await supabase
+      .from('reactions')
+      .select('id')
+      .eq('message_id', messageId)
+      .eq('user_id', userId)
+      .eq('emoji', emoji)
+      .single()
+
+    if (existingReaction) {
+      // Remove reaction if it already exists
+      const { error } = await supabase
+        .from('reactions')
+        .delete()
+        .eq('id', existingReaction.id)
+
+      if (error) throw error
+      return
+    }
+
+    // Add new reaction
     const { data, error } = await supabase
-      .from('messages')
+      .from('reactions')
+      .insert({
+        message_id: messageId,
+        user_id: userId,
+        emoji
+      })
       .select(`
         *,
-        user:users!sender_id(id, username, full_name, avatar_url, status),
-        attachments(*),
-        reactions(
+        user:users!user_id(
           id,
-          emoji,
-          created_at,
-          user:users!user_id(id, username, avatar_url)
+          username,
+          full_name,
+          avatar_url,
+          status
         )
       `)
-      .eq('channel_id', channelId)
-      .is('parent_message_id', null)
-      .gt('created_at', after)
-      .order('created_at', { ascending: true })
+      .single()
 
     if (error) throw error
-    return data as Message[]
+    return data as Reaction
   },
 
-  // Get thread messages
-  async getThreadMessages(parentMessageId: string) {
+  async getThreadMessages(messageId: string) {
     const { data, error } = await supabase
       .from('messages')
       .select(`
         *,
-        user:users!sender_id(id, username, full_name, avatar_url, status),
-        attachments(*),
+        user:users!sender_id(
+          id,
+          username,
+          full_name,
+          avatar_url,
+          status
+        ),
         reactions(
           id,
           emoji,
           created_at,
-          user:users!user_id(id, username, avatar_url)
+          user:users!user_id(
+            id,
+            username,
+            avatar_url
+          )
         )
       `)
-      .eq('parent_message_id', parentMessageId)
+      .eq('parent_message_id', messageId)
       .order('created_at', { ascending: true })
 
     if (error) throw error

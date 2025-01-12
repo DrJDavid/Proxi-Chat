@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Hash, MessageSquare, Search, Users } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,21 +19,21 @@ export function Sidebar({ className }: SidebarProps) {
   const [channels, setChannels] = useState<Channel[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchChannels() {
-      try {
-        const channels = await channelApi.getChannels()
-        setChannels(channels)
-      } catch (error) {
-        console.error('Error fetching channels:', error)
-        toast.error('Failed to load channels')
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchChannels = useCallback(async () => {
+    try {
+      const channels = await channelApi.getChannels()
+      setChannels(channels)
+    } catch (error) {
+      console.error('Error fetching channels:', error)
+      toast.error('Failed to load channels')
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchChannels()
   }, [])
+
+  useEffect(() => {
+    fetchChannels()
+  }, [fetchChannels])
 
   return (
     <div className={cn("flex h-full w-60 flex-col border-r bg-muted/10", className)}>
@@ -55,7 +55,7 @@ export function Sidebar({ className }: SidebarProps) {
             <Search className="absolute right-2 top-1 h-4 w-4 text-muted-foreground" />
           </h2>
           <div className="space-y-1 py-2">
-            <CreateChannel />
+            <CreateChannel onChannelCreated={fetchChannels} />
             {isLoading ? (
               <div className="px-2 py-1 text-sm text-muted-foreground">
                 Loading channels...
