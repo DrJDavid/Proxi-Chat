@@ -60,6 +60,7 @@ export type Database = {
           created_at: string
           has_attachment: boolean
           parent_message_id: string | null
+          edited_at: string | null
         }
         Insert: {
           id?: string
@@ -70,6 +71,7 @@ export type Database = {
           created_at?: string
           has_attachment?: boolean
           parent_message_id?: string | null
+          edited_at?: string | null
         }
         Update: {
           id?: string
@@ -80,6 +82,7 @@ export type Database = {
           created_at?: string
           has_attachment?: boolean
           parent_message_id?: string | null
+          edited_at?: string | null
         }
       }
       attachments: {

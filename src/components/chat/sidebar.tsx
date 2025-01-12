@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Hash, Plus, Users } from 'lucide-react'
+import { Hash, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useChannelStore } from '@/store/channel'
-import { useUserStore } from '@/store/user'
-import { userApi } from '@/lib/api/users'
+import { useUserStore } from '@/lib/store/useUserStore'
+import { useDirectMessageStore } from '@/store/direct-messages'
 import { messageApi } from '@/lib/api/messages'
 import { type User, type Channel } from '@/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -17,20 +17,53 @@ import { getInitials } from '@/lib/utils'
 import { DirectMessageDialog } from './direct-message-dialog'
 import { toast } from 'sonner'
 import { CreateChannel } from './create-channel'
+import { NotificationCounter } from './notification-counter'
+
+interface UserButtonProps {
+  user: User
+  onClick: () => void
+}
+
+function UserButton({ user, onClick }: UserButtonProps) {
+  return (
+    <Button
+      variant="ghost"
+      className="w-full justify-start relative"
+      onClick={onClick}
+    >
+      <div className="relative">
+        <Avatar className="h-5 w-5 mr-2">
+          <AvatarImage src={user.avatar_url || ''} />
+          <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
+        </Avatar>
+        <div className={cn(
+          'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background',
+          user.status === 'online' ? 'bg-green-500' : 'bg-gray-500'
+        )} />
+      </div>
+      <span className={cn(
+        'truncate',
+        user.status === 'online' ? 'text-foreground' : 'text-muted-foreground'
+      )}>
+        {user.username}
+      </span>
+      <NotificationCounter userId={user.id} />
+    </Button>
+  )
+}
 
 export function Sidebar() {
   const router = useRouter()
-  const [users, setUsers] = useState<User[]>([])
   const [recentDmUsers, setRecentDmUsers] = useState<User[]>([])
   const [displayCount, setDisplayCount] = useState(10)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const { channels, selectedChannel, setSelectedChannel, fetchChannels, unreadMessages, clearUnread } = useChannelStore()
-  const { user } = useUserStore()
+  const { channels, selectedChannel, setSelectedChannel, fetchChannels } = useChannelStore()
+  const { currentUser, users } = useUserStore()
+  const { selectedUser, setSelectedUser } = useDirectMessageStore()
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false)
 
   // Function to fetch channels
   const refreshChannels = async () => {
-    if (!user) return
+    if (!currentUser) return
     try {
       await fetchChannels()
     } catch (error) {
@@ -44,65 +77,58 @@ export function Sidebar() {
   }
 
   useEffect(() => {
-    async function fetchUsersAndDms() {
-      if (!user) return
+    async function fetchRecentDms() {
+      if (!currentUser) return
 
       try {
-        const allUsers = await userApi.fetchUsers()
-        const filteredUsers = allUsers.filter(u => u.id !== user.id)
-
         // Get recent DM conversations
-        const recentMessages = await messageApi.fetchRecentDirectMessageUsers(user.id)
+        const recentMessages = await messageApi.fetchRecentDirectMessageUsers(currentUser.id)
         const recentUserIds = new Set(recentMessages.map((msg: { sender_id: string; receiver_id: string }) => 
-          msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
+          msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id
         ).slice(0, 3))
 
-        // Split users into recent, online, and others
-        const recent = filteredUsers.filter(u => recentUserIds.has(u.id))
-        const onlineNotRecent = filteredUsers.filter(u => 
-          u.status === 'online' && !recentUserIds.has(u.id)
-        )
-        const others = filteredUsers.filter(u => 
-          u.status !== 'online' && !recentUserIds.has(u.id)
-        )
-
+        // Get recent users from the users list
+        const recent = users.filter(u => recentUserIds.has(u.id))
         setRecentDmUsers(recent)
-        setUsers([...onlineNotRecent, ...others])
       } catch (error) {
-        console.error('Error fetching users:', error)
+        console.error('Error fetching recent DMs:', error)
         if (error instanceof Error) {
           toast.error(error.message)
         } else {
-          toast.error('Failed to load users')
+          toast.error('Failed to load recent messages')
         }
       }
     }
 
-    fetchUsersAndDms()
-  }, [user])
+    fetchRecentDms()
+  }, [currentUser, users])
 
   // Initial channel fetch
   useEffect(() => {
     refreshChannels()
-  }, [user])
+  }, [currentUser])
 
   // Set up polling for channel updates
   useEffect(() => {
-    if (!user) return
+    if (!currentUser) return
 
     const interval = setInterval(refreshChannels, 5000) // Poll every 5 seconds
     return () => clearInterval(interval)
-  }, [user])
+  }, [currentUser])
 
-  if (!user) return null
+  if (!currentUser) return null
 
-  const displayedUsers = users.slice(0, displayCount)
-  const hasMoreUsers = users.length > displayCount
+  const filteredUsers = users.filter(u => u.id !== currentUser.id)
+  const displayedUsers = filteredUsers.slice(0, displayCount)
+  const hasMoreUsers = filteredUsers.length > displayCount
 
   const handleChannelSelect = (channel: Channel) => {
-    console.log('Selecting channel:', channel.name, 'Current unread:', unreadMessages[channel.id])
     setSelectedChannel(channel)
     router.push(`/chat/channels/${channel.name}`)
+  }
+
+  const handleUserSelect = (selectedUser: User) => {
+    setSelectedUser(selectedUser)
   }
 
   return (
@@ -131,29 +157,21 @@ export function Sidebar() {
               </Dialog>
             </div>
             <div className="space-y-1">
-              {channels.map((channel: Channel) => {
-                const unreadCount = unreadMessages[channel.id] || 0
-                console.log(`Channel ${channel.name} unread:`, unreadCount)
-                return (
-                  <Button
-                    key={channel.id}
-                    variant="ghost"
-                    className={cn(
-                      'w-full justify-start relative',
-                      selectedChannel?.id === channel.id && 'bg-accent'
-                    )}
-                    onClick={() => handleChannelSelect(channel)}
-                  >
-                    <Hash className="h-4 w-4 mr-2" />
-                    {channel.name}
-                    {unreadCount > 0 && (
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </Button>
-                )
-              })}
+              {channels.map((channel: Channel) => (
+                <Button
+                  key={channel.id}
+                  variant="ghost"
+                  className={cn(
+                    'w-full justify-start relative',
+                    selectedChannel?.id === channel.id && 'bg-accent'
+                  )}
+                  onClick={() => handleChannelSelect(channel)}
+                >
+                  <Hash className="h-4 w-4 mr-2" />
+                  {channel.name}
+                  <NotificationCounter channelId={channel.id} />
+                </Button>
+              ))}
             </div>
           </div>
 
@@ -170,7 +188,7 @@ export function Sidebar() {
                   <UserButton
                     key={user.id}
                     user={user}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => handleUserSelect(user)}
                   />
                 ))}
               </div>
@@ -179,12 +197,12 @@ export function Sidebar() {
             {/* Online Users */}
             <div className="space-y-1">
               {displayedUsers
-                .filter(user => user.status === 'online')
+                .filter(user => user.status === 'online' && !recentDmUsers.some(r => r.id === user.id))
                 .map((user) => (
                   <UserButton
                     key={user.id}
                     user={user}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => handleUserSelect(user)}
                   />
                 ))}
             </div>
@@ -192,12 +210,12 @@ export function Sidebar() {
             {/* Offline Users */}
             <div className="space-y-1">
               {displayedUsers
-                .filter(user => user.status !== 'online')
+                .filter(user => user.status !== 'online' && !recentDmUsers.some(r => r.id === user.id))
                 .map((user) => (
                   <UserButton
                     key={user.id}
                     user={user}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => handleUserSelect(user)}
                   />
                 ))}
             </div>
@@ -226,33 +244,5 @@ export function Sidebar() {
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
-
-function UserButton({ user, onClick }: { user: User; onClick: () => void }) {
-  return (
-    <Button
-      variant="ghost"
-      className="w-full justify-start"
-      onClick={onClick}
-    >
-      <div className="relative mr-2">
-        <Avatar className="h-6 w-6">
-          {user.avatar_url && (
-            <AvatarImage
-              src={user.avatar_url}
-              alt={`${user.username}'s avatar`}
-            />
-          )}
-          <AvatarFallback>
-            {user.username ? getInitials(user.username) : '??'}
-          </AvatarFallback>
-        </Avatar>
-        <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-background ${
-          user.status === 'online' ? 'bg-green-500' : 'bg-gray-500'
-        }`} />
-      </div>
-      {user.username}
-    </Button>
   )
 } 

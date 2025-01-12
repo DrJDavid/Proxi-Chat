@@ -28,12 +28,11 @@ export interface ChannelMember {
 export interface Message {
   id: string
   content: string
-  channel_id: string
   sender_id: string
-  receiver_id: string | null
-  parent_message_id: string | null
-  has_attachment: boolean
+  channel_id?: string
+  receiver_id?: string
   created_at: string
+  edited_at?: string
   user?: User
   reactions?: Reaction[]
   reply_count?: number

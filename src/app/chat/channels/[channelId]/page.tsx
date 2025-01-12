@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { Hash, MessageCircle, Paperclip, Send, SmilePlus, MoreHorizontal } from "lucide-react"
+import { Hash, MessageCircle, Paperclip, Send, SmilePlus, MoreHorizontal, Pencil } from "lucide-react"
 import { useCallback, useState, KeyboardEvent, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 
@@ -28,7 +28,7 @@ import { RichTextInput } from "@/components/chat/RichTextInput"
 export default function ChannelPage() {
   const { channelId } = useParams() as { channelId: string }
   const [message, setMessage] = useState("")
-  const { messages: allMessages, setMessages } = useMessagesStore()
+  const { messages: allMessages, setMessages, updateMessage } = useMessagesStore()
   const { user, fetchUser } = useUserStore()
   const [channelUuid, setChannelUuid] = useState<string | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
@@ -39,6 +39,8 @@ export default function ChannelPage() {
   const router = useRouter()
   const { fetchChannels, selectedChannel, setSelectedChannel, incrementUnread } = useChannelStore()
   const lastFetchRef = useRef<number>(0)
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null)
+  const [editContent, setEditContent] = useState("")
 
   // Fetch user data on mount
   useEffect(() => {
@@ -91,8 +93,10 @@ export default function ChannelPage() {
       const currentMessages = allMessages[channelId] || []
 
       // Only update if we have new messages
-      if (newMessages.length !== currentMessages.length) {
-        if (newMessages.length > currentMessages.length && channelUuid !== selectedChannel?.id) {
+      if (newMessages.length > currentMessages.length) {
+        // Only increment unread if this is not the currently viewed channel
+        if (window.location.pathname !== `/chat/channels/${channelId}`) {
+          console.log('Incrementing unread for channel:', channelId)
           incrementUnread(channelUuid)
         }
         setMessages(channelId, newMessages)
@@ -108,7 +112,7 @@ export default function ChannelPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [channelId, channelUuid, setMessages, selectedChannel, incrementUnread, allMessages])
+  }, [channelId, channelUuid, setMessages, incrementUnread, allMessages])
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout
@@ -219,6 +223,53 @@ export default function ChannelPage() {
     }
   }
 
+  const handleEditMessage = async () => {
+    if (!editingMessage || !editContent.trim()) return
+
+    try {
+      // Optimistically update the message
+      const optimisticUpdate = {
+        content: editContent.trim(),
+        edited_at: new Date().toISOString()
+      }
+      updateMessage(channelId, editingMessage.id, optimisticUpdate)
+
+      // Reset UI state immediately
+      setEditingMessage(null)
+      setEditContent("")
+      
+      // Make the API call
+      await messageApi.editMessage(editingMessage.id, editContent.trim())
+      
+      // No need to await this since we've already updated optimistically
+      fetchChannelMessages().catch(console.error)
+      
+      toast.success('Message updated')
+    } catch (error) {
+      console.error('Error editing message:', {
+        error,
+        errorType: error?.constructor?.name,
+        errorMessage: error instanceof Error ? error.message : String(error)
+      })
+      
+      // Revert the optimistic update on error by re-fetching
+      await fetchChannelMessages()
+      
+      let errorMessage = 'Failed to edit message'
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (typeof error === 'object' && error !== null) {
+        try {
+          errorMessage = JSON.stringify(error)
+        } catch {
+          errorMessage = String(error)
+        }
+      }
+      
+      toast.error(errorMessage)
+    }
+  }
+
   const channelMessages = allMessages[channelId] || []
 
   if (!user || !channelUuid) {
@@ -310,6 +361,9 @@ export default function ChannelPage() {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
+                      {message.edited_at && (
+                        <span className="ml-1 text-xs text-muted-foreground">(edited)</span>
+                      )}
                     </span>
                     {message.user?.id === user.id && (
                       <DropdownMenu>
@@ -323,6 +377,15 @@ export default function ChannelPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setEditingMessage(message)
+                              setEditContent(message.content)
+                            }}
+                          >
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit Message
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive"
                             onClick={async () => {
@@ -344,7 +407,37 @@ export default function ChannelPage() {
                       </DropdownMenu>
                     )}
                   </div>
-                  <MessageContent content={message.content} />
+                  {editingMessage?.id === message.id ? (
+                    <div className="mt-2">
+                      <RichTextInput
+                        value={editContent}
+                        onChange={setEditContent}
+                        onSubmit={handleEditMessage}
+                        placeholder="Edit your message..."
+                      />
+                      <div className="flex justify-end gap-2 mt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingMessage(null)
+                            setEditContent("")
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleEditMessage}
+                          disabled={!editContent.trim() || editContent === message.content}
+                        >
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <MessageContent content={message.content} />
+                  )}
                   
                   {/* Reactions */}
                   <div className="flex items-center gap-2 mt-2">

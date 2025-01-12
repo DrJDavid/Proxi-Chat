@@ -29,10 +29,17 @@ export const userApi = {
       }
 
       console.log('Raw user data:', data)
-      const transformedUsers = data.map(user => ({
-        ...user,
-        status: user.status || 'offline'
-      }))
+      const transformedUsers = data.map(user => {
+        // Check if user has been inactive for more than 2 minutes
+        const lastSeen = user.last_seen ? new Date(user.last_seen) : null
+        const isInactive = !lastSeen || (new Date().getTime() - lastSeen.getTime()) > 2 * 60 * 1000
+
+        return {
+          ...user,
+          // Override status to offline if user is inactive
+          status: isInactive ? 'offline' : (user.status || 'offline')
+        }
+      })
       console.log('Transformed users:', transformedUsers)
       return transformedUsers as User[]
     } catch (err) {

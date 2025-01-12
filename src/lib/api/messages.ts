@@ -1,5 +1,6 @@
 import supabase from '@/lib/supabase/client'
 import { type Message, type Reaction } from '@/types'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export const messageApi = {
   async fetchMessages(channelId: string, options: {
@@ -248,5 +249,83 @@ export const messageApi = {
       .eq('sender_id', session.user.id)
 
     if (error) throw error
+  },
+
+  async editMessage(messageId: string, content: string) {
+    try {
+      console.log('Starting editMessage API call:', { messageId, content })
+      
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) {
+        console.error('Session error:', sessionError)
+        throw sessionError
+      }
+      if (!session?.user) {
+        throw new Error('Not authenticated')
+      }
+
+      // Check if user is the sender
+      const { data: message, error: messageError } = await supabase
+        .from('messages')
+        .select('sender_id')
+        .eq('id', messageId)
+        .single()
+
+      if (messageError) {
+        console.error('Error fetching message:', messageError)
+        throw messageError
+      }
+
+      if (!message) {
+        throw new Error('Message not found')
+      }
+
+      if (message.sender_id !== session.user.id) {
+        throw new Error('Only the message sender can edit this message')
+      }
+
+      // Update the message
+      const { data: updatedMessage, error: updateError } = await supabase
+        .from('messages')
+        .update({ 
+          content,
+          edited_at: new Date().toISOString()
+        })
+        .eq('id', messageId)
+        .eq('sender_id', session.user.id)
+        .select(`
+          id,
+          content,
+          created_at,
+          edited_at,
+          sender_id,
+          channel_id,
+          parent_message_id,
+          has_attachment,
+          user:users!sender_id(id, username, full_name, avatar_url, status),
+          reactions(
+            id,
+            emoji,
+            created_at,
+            user:users!user_id(id, username, avatar_url)
+          )
+        `)
+        .single()
+
+      if (updateError) {
+        console.error('Error updating message:', updateError)
+        throw updateError
+      }
+
+      if (!updatedMessage) {
+        throw new Error('Failed to update message')
+      }
+
+      console.log('Message updated successfully:', updatedMessage)
+      return { ...updatedMessage, reply_count: 0 } as Message
+    } catch (error) {
+      console.error('Error in editMessage:', error)
+      throw error
+    }
   }
 } 

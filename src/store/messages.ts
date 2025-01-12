@@ -9,6 +9,7 @@ interface MessagesState {
   user: User | null
   addMessage: (channelId: string, message: Message) => void
   setMessages: (channelId: string, messages: Message[]) => void
+  updateMessage: (channelId: string, messageId: string, updates: Partial<Message>) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: Error | null) => void
   setUser: (user: User | null) => void
@@ -48,6 +49,18 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
         }
       }
     }),
+
+  updateMessage: (channelId, messageId, updates) =>
+    set((state) => ({
+      messages: {
+        ...state.messages,
+        [channelId]: state.messages[channelId]?.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, ...updates }
+            : msg
+        ) || []
+      }
+    })),
 
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
