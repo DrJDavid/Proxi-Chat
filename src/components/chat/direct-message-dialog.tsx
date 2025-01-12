@@ -11,7 +11,10 @@ import { toast } from 'sonner'
 import { getInitials } from '@/lib/utils'
 import { usePolling } from '@/hooks/usePolling'
 import { EmojiPicker } from '@/components/ui/emoji-picker'
-import { Send, SmilePlus } from 'lucide-react'
+import { Send, SmilePlus, Paperclip, FileIcon } from 'lucide-react'
+import { FileUpload } from './file-upload'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 interface DirectMessageDialogProps {
   recipient: User
@@ -21,6 +24,7 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
   const [messageContent, setMessageContent] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
+  const [showFileUpload, setShowFileUpload] = useState(false)
   const { user } = useUserStore()
 
   const fetchMessages = useCallback(async () => {
@@ -87,6 +91,26 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
     }
   }
 
+  const handleFileUpload = (fileUrl: string, fileName: string) => {
+    if (!user) return
+    
+    messageApi.sendMessage({
+      content: `[File shared: ${fileName}](${fileUrl})`,
+      senderId: user.id,
+      receiverId: recipient.id
+    }).then(message => {
+      setMessages(prev => [...prev, message])
+      setShowFileUpload(false)
+    }).catch(error => {
+      console.error('Error sending file message:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to send file message')
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col h-[500px]">
       <ScrollArea className="flex-1 p-4">
@@ -119,7 +143,21 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
                     })}
                   </span>
                 </div>
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm">
+                  {message.content.startsWith('[File shared') ? (
+                    <a 
+                      href={message.content.match(/\((.*?)\)/)?.[1] || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-2"
+                    >
+                      <FileIcon className="h-4 w-4" />
+                      {message.content.match(/\[File shared: (.*?)\]/)?.[1] || 'File'}
+                    </a>
+                  ) : (
+                    message.content
+                  )}
+                </p>
 
                 {/* Reactions */}
                 <div className={`flex items-center gap-2 mt-2 ${
@@ -182,6 +220,25 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
             }}
           />
           <div className="flex flex-col gap-2">
+            <Dialog open={showFileUpload} onOpenChange={setShowFileUpload}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0">
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Upload File</DialogTitle>
+                  <DialogDescription>
+                    Share a file in your conversation with {recipient.username}
+                  </DialogDescription>
+                </DialogHeader>
+                <FileUpload
+                  dmId={recipient.id}
+                  onUploadComplete={handleFileUpload}
+                />
+              </DialogContent>
+            </Dialog>
             <Button
               variant="ghost"
               size="icon"

@@ -13,29 +13,49 @@ export interface FileUpload {
   createdAt: string
 }
 
-const ALLOWED_FILE_TYPES = [
-  // Images
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  // Documents
-  'application/pdf',
-  'text/plain',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-]
+// Define file type configuration that can be shared
+export const FILE_TYPES = {
+  'image/*': {
+    extensions: ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
+    mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  },
+  'application/pdf': {
+    extensions: ['.pdf'],
+    mimeTypes: ['application/pdf']
+  },
+  'text/plain': {
+    extensions: ['.txt'],
+    mimeTypes: ['text/plain']
+  },
+  'application/msword': {
+    extensions: ['.doc'],
+    mimeTypes: ['application/msword']
+  },
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+    extensions: ['.docx'],
+    mimeTypes: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+  },
+  'application/vnd.ms-excel': {
+    extensions: ['.xls'],
+    mimeTypes: ['application/vnd.ms-excel']
+  },
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+    extensions: ['.xlsx'],
+    mimeTypes: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+  }
+} as const
+
+export const ALLOWED_MIME_TYPES = Object.values(FILE_TYPES).flatMap(type => type.mimeTypes)
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
 export const filesApi = {
   validateFile: (file: File) => {
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    // Check if file type is allowed
+    if (!ALLOWED_MIME_TYPES.includes(file.type as typeof ALLOWED_MIME_TYPES[number])) {
       throw new Error(`File type not supported. Supported types: Images, PDF, DOC, DOCX, XLS, XLSX, TXT`)
     }
+    // Check file size limit
     if (file.size > MAX_FILE_SIZE) {
       throw new Error('File size too large (max 10MB)')
     }
@@ -51,10 +71,73 @@ export const filesApi = {
       if (sessionError) throw sessionError
       if (!session?.user) throw new Error('Not authenticated')
 
+      // If dmId is provided, ensure DM record exists
+      if (dmId) {
+        // Query for existing DM with either user combination
+        const { data: existingDm, error: dmQueryError } = await supabase
+          .from('direct_messages')
+          .select('id')
+          .eq('user1_id', session.user.id)
+          .eq('user2_id', dmId)
+          .maybeSingle()
+
+        if (dmQueryError) {
+          console.error('DM query error:', dmQueryError)
+          throw new Error('Failed to check DM conversation')
+        }
+
+        let dmRecordId: string
+
+        if (!existingDm) {
+          // Try the reverse combination
+          const { data: reverseExistingDm, error: reverseDmQueryError } = await supabase
+            .from('direct_messages')
+            .select('id')
+            .eq('user1_id', dmId)
+            .eq('user2_id', session.user.id)
+            .maybeSingle()
+
+          if (reverseDmQueryError) {
+            console.error('Reverse DM query error:', reverseDmQueryError)
+            throw new Error('Failed to check DM conversation')
+          }
+
+          if (!reverseExistingDm) {
+            // Create new DM record
+            const { data: newDm, error: dmError } = await supabase
+              .from('direct_messages')
+              .insert({
+                user1_id: session.user.id,
+                user2_id: dmId
+              })
+              .select('id')
+              .single()
+
+            if (dmError) {
+              console.error('DM creation error:', dmError)
+              throw new Error('Failed to create DM conversation')
+            }
+
+            if (!newDm) {
+              throw new Error('Failed to create DM record')
+            }
+
+            dmRecordId = newDm.id
+          } else {
+            dmRecordId = reverseExistingDm.id
+          }
+        } else {
+          dmRecordId = existingDm.id
+        }
+
+        // Use the actual DM record ID for the file
+        dmId = dmRecordId
+      }
+
       // Generate unique file path
       const fileExt = file.name.split('.').pop()
       const fileName = `${uuidv4()}.${fileExt}`
-      const filePath = `uploads/${fileName}` // Simplified path structure
+      const filePath = `uploads/${fileName}`
 
       // Upload file to storage
       const { error: uploadError, data } = await supabase.storage
@@ -86,16 +169,21 @@ export const filesApi = {
           size: file.size,
           type: file.type,
           url: publicUrl,
-          channel_id: channelId,
-          dm_id: dmId,
+          channel_id: channelId || null,
+          dm_id: dmId || null,
           user_id: session.user.id,
         })
         .select()
         .single()
 
       if (dbError) {
+        // If database insert fails, clean up the uploaded file
+        await supabase.storage
+          .from('files')
+          .remove([data.path])
+        
         console.error('Database error:', dbError)
-        throw new Error('Failed to save file information')
+        throw new Error(dbError.message || 'Failed to save file information')
       }
 
       if (!fileRecord) {

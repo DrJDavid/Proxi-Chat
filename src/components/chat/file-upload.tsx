@@ -5,24 +5,20 @@ import { useDropzone, type FileWithPath } from 'react-dropzone'
 import { Paperclip, X, FileIcon, ImageIcon, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { filesApi } from '@/lib/api/files'
+import { filesApi, FILE_TYPES } from '@/lib/api/files'
 import { toast } from 'sonner'
 
 interface FileUploadProps {
   channelId?: string
   dmId?: string
-  onUploadComplete: (fileUrl: string) => void
+  onUploadComplete: (fileUrl: string, fileName: string) => void
 }
 
-const ACCEPTED_FILE_TYPES = {
-  'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
-  'application/pdf': ['.pdf'],
-  'text/plain': ['.txt'],
-  'application/msword': ['.doc'],
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-  'application/vnd.ms-excel': ['.xls'],
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-} as const
+// Use the shared file type configuration
+const ACCEPTED_FILE_TYPES = Object.entries(FILE_TYPES).reduce<Record<string, string[]>>((acc, [key, value]) => {
+  acc[key] = [...value.extensions] // Spread to create mutable array
+  return acc
+}, {})
 
 export function FileUpload({ channelId, dmId, onUploadComplete }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
@@ -58,7 +54,7 @@ export function FileUpload({ channelId, dmId, onUploadComplete }: FileUploadProp
       const uploadedFile = await filesApi.uploadFile(file, channelId, dmId)
       clearInterval(progressInterval)
       setUploadProgress(100)
-      onUploadComplete(uploadedFile.url)
+      onUploadComplete(uploadedFile.url, uploadedFile.name)
       toast.success('File uploaded successfully')
       setSelectedFile(null)
     } catch (err: unknown) {
