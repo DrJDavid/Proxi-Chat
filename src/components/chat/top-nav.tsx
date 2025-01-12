@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { User, LogOut, Settings, Sun, Moon, Laptop } from 'lucide-react'
+import { User, LogOut, Settings, Sun, Moon, Laptop, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -82,7 +82,17 @@ export function TopNav() {
 
   return (
     <div className="flex items-center justify-between h-14 px-4 border-b">
-      <h1 className="text-lg font-semibold">ProxiChat</h1>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push('/')}
+          className="h-8 w-8"
+        >
+          <Home className="h-4 w-4" />
+        </Button>
+        <h1 className="text-lg font-semibold">ProxiChat</h1>
+      </div>
       
       <div className="flex items-center gap-2">
         <DropdownMenu>

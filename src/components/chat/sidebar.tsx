@@ -24,9 +24,24 @@ export function Sidebar() {
   const [recentDmUsers, setRecentDmUsers] = useState<User[]>([])
   const [displayCount, setDisplayCount] = useState(10)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const { channels, selectedChannel, setSelectedChannel, fetchChannels } = useChannelStore()
+  const { channels, selectedChannel, setSelectedChannel, fetchChannels, unreadMessages, clearUnread } = useChannelStore()
   const { user } = useUserStore()
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false)
+
+  // Function to fetch channels
+  const refreshChannels = async () => {
+    if (!user) return
+    try {
+      await fetchChannels()
+    } catch (error) {
+      console.error('Error fetching channels:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to load channels')
+      }
+    }
+  }
 
   useEffect(() => {
     async function fetchUsersAndDms() {
@@ -66,18 +81,18 @@ export function Sidebar() {
     fetchUsersAndDms()
   }, [user])
 
-  // Add channel fetching
+  // Initial channel fetch
+  useEffect(() => {
+    refreshChannels()
+  }, [user])
+
+  // Set up polling for channel updates
   useEffect(() => {
     if (!user) return
-    fetchChannels().catch((error: unknown) => {
-      console.error('Error fetching channels:', error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Failed to load channels')
-      }
-    })
-  }, [user, fetchChannels])
+
+    const interval = setInterval(refreshChannels, 5000) // Poll every 5 seconds
+    return () => clearInterval(interval)
+  }, [user])
 
   if (!user) return null
 
@@ -85,6 +100,7 @@ export function Sidebar() {
   const hasMoreUsers = users.length > displayCount
 
   const handleChannelSelect = (channel: Channel) => {
+    console.log('Selecting channel:', channel.name, 'Current unread:', unreadMessages[channel.id])
     setSelectedChannel(channel)
     router.push(`/chat/channels/${channel.name}`)
   }
@@ -107,25 +123,37 @@ export function Sidebar() {
                   <DialogHeader>
                     <DialogTitle>Create Channel</DialogTitle>
                   </DialogHeader>
-                  <CreateChannel onClose={() => setIsCreateChannelOpen(false)} />
+                  <CreateChannel onClose={() => {
+                    setIsCreateChannelOpen(false)
+                    refreshChannels()
+                  }} />
                 </DialogContent>
               </Dialog>
             </div>
             <div className="space-y-1">
-              {channels.map((channel: Channel) => (
-                <Button
-                  key={channel.id}
-                  variant="ghost"
-                  className={cn(
-                    'w-full justify-start',
-                    selectedChannel?.id === channel.id && 'bg-accent'
-                  )}
-                  onClick={() => handleChannelSelect(channel)}
-                >
-                  <Hash className="h-4 w-4 mr-2" />
-                  {channel.name}
-                </Button>
-              ))}
+              {channels.map((channel: Channel) => {
+                const unreadCount = unreadMessages[channel.id] || 0
+                console.log(`Channel ${channel.name} unread:`, unreadCount)
+                return (
+                  <Button
+                    key={channel.id}
+                    variant="ghost"
+                    className={cn(
+                      'w-full justify-start relative',
+                      selectedChannel?.id === channel.id && 'bg-accent'
+                    )}
+                    onClick={() => handleChannelSelect(channel)}
+                  >
+                    <Hash className="h-4 w-4 mr-2" />
+                    {channel.name}
+                    {unreadCount > 0 && (
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                )
+              })}
             </div>
           </div>
 

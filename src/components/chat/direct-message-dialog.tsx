@@ -11,10 +11,13 @@ import { toast } from 'sonner'
 import { getInitials } from '@/lib/utils'
 import { usePolling } from '@/hooks/usePolling'
 import { EmojiPicker } from '@/components/ui/emoji-picker'
-import { Send, SmilePlus, Paperclip, FileIcon } from 'lucide-react'
+import { Send, SmilePlus, Paperclip, FileIcon, MoreHorizontal } from 'lucide-react'
 import { FileUpload } from './file-upload'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { MessageContent } from "@/components/chat/MessageContent"
+import { RichTextInput } from "./RichTextInput"
 
 interface DirectMessageDialogProps {
   recipient: User
@@ -118,7 +121,7 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start gap-3 ${
+              className={`flex items-start gap-3 group ${
                 message.sender_id === user?.id ? 'flex-row-reverse' : ''
               }`}
             >
@@ -133,7 +136,7 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
                   {message.user?.username ? getInitials(message.user.username) : '??'}
                 </AvatarFallback>
               </Avatar>
-              <div className={`flex-1 ${message.sender_id === user?.id ? 'text-right' : ''}`}>
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{message.user?.username}</span>
                   <span className="text-xs text-muted-foreground">
@@ -142,22 +145,40 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
                       minute: '2-digit'
                     })}
                   </span>
-                </div>
-                <p className="text-sm">
-                  {message.content.startsWith('[File shared') ? (
-                    <a 
-                      href={message.content.match(/\((.*?)\)/)?.[1] || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline flex items-center gap-2"
-                    >
-                      <FileIcon className="h-4 w-4" />
-                      {message.content.match(/\[File shared: (.*?)\]/)?.[1] || 'File'}
-                    </a>
-                  ) : (
-                    message.content
+                  {message.sender_id === user?.id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={async () => {
+                            if (!confirm('Are you sure you want to delete this message?')) return
+
+                            try {
+                              await messageApi.deleteMessage(message.id)
+                              await fetchMessages()
+                              toast.success('Message deleted')
+                            } catch (error) {
+                              console.error('Error deleting message:', error)
+                              toast.error(error instanceof Error ? error.message : 'Failed to delete message')
+                            }
+                          }}
+                        >
+                          Delete Message
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
-                </p>
+                </div>
+                <MessageContent content={message.content} />
 
                 {/* Reactions */}
                 <div className={`flex items-center gap-2 mt-2 ${
@@ -207,61 +228,36 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
 
       <div className="p-4 border-t">
         <div className="flex items-center gap-2">
-          <textarea
-            value={messageContent}
-            onChange={(e) => setMessageContent(e.target.value)}
-            placeholder={`Message ${recipient.username}`}
-            className="flex-1 min-h-[80px] p-2 rounded-md border resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSendMessage()
-              }
-            }}
-          />
-          <div className="flex flex-col gap-2">
-            <Dialog open={showFileUpload} onOpenChange={setShowFileUpload}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0">
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Upload File</DialogTitle>
-                  <DialogDescription>
-                    Share a file in your conversation with {recipient.username}
-                  </DialogDescription>
-                </DialogHeader>
-                <FileUpload
-                  dmId={recipient.id}
-                  onUploadComplete={handleFileUpload}
-                />
-              </DialogContent>
-            </Dialog>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="shrink-0"
-              onClick={() => setShowEmojiPicker('input')}
-            >
-              <SmilePlus className="h-5 w-5" />
-            </Button>
-            <Button onClick={handleSendMessage} size="icon" className="shrink-0">
-              <Send className="h-5 w-5" />
-            </Button>
-          </div>
-          {showEmojiPicker === 'input' && (
-            <div className="absolute bottom-20 right-4">
-              <EmojiPicker
-                onEmojiSelect={(emoji) => {
-                  setMessageContent(prev => prev + emoji)
-                  setShowEmojiPicker(null)
-                }}
-                onClickOutside={() => setShowEmojiPicker(null)}
+          <Dialog open={showFileUpload} onOpenChange={setShowFileUpload}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Paperclip className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Upload File</DialogTitle>
+                <DialogDescription>
+                  Share a file in your conversation with {recipient.username}
+                </DialogDescription>
+              </DialogHeader>
+              <FileUpload
+                dmId={recipient.id}
+                onUploadComplete={handleFileUpload}
               />
-            </div>
-          )}
+            </DialogContent>
+          </Dialog>
+          <div className="flex-1">
+            <RichTextInput
+              value={messageContent}
+              onChange={setMessageContent}
+              onSubmit={handleSendMessage}
+              placeholder={`Message ${recipient.username}`}
+            />
+          </div>
+          <Button onClick={handleSendMessage} size="icon" className="shrink-0">
+            <Send className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </div>

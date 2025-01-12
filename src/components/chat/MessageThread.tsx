@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { MessageCircle, X, SmilePlus } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { MessageCircle, X, SmilePlus, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,6 +12,9 @@ import { toast } from 'sonner'
 import { getInitials } from '@/lib/utils'
 import { usePolling } from '@/hooks/usePolling'
 import { EmojiPicker } from '@/components/ui/emoji-picker'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { MessageContent } from "@/components/chat/MessageContent"
+import { RichTextInput } from "./RichTextInput"
 
 interface MessageThreadProps {
   message: Message
@@ -23,26 +26,61 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
   const [replyContent, setReplyContent] = useState('')
   const [replies, setReplies] = useState<Message[]>([])
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { user } = useUserStore()
+  const lastFetchRef = useRef<number>(0)
 
   const fetchReplies = useCallback(async () => {
+    // Prevent concurrent fetches
+    const now = Date.now()
+    if (now - lastFetchRef.current < 1000) return [] // Debounce fetches
+    lastFetchRef.current = now
+
     try {
+      setIsLoading(true)
+      setError(null)
       const threadMessages = await messageApi.getThreadMessages(message.id)
-      setReplies(threadMessages)
+      
+      // Only update state if messages have changed
+      setReplies(prev => {
+        if (JSON.stringify(prev) !== JSON.stringify(threadMessages)) {
+          return threadMessages
+        }
+        return prev
+      })
+      
       return threadMessages
     } catch (error) {
       console.error('Error fetching replies:', error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Failed to load replies')
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load replies'
+      setError(errorMessage)
       throw error
+    } finally {
+      setIsLoading(false)
     }
   }, [message.id])
 
-  // Poll for new replies
-  usePolling(fetchReplies, 3000, true)
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout
+
+    // Initial fetch
+    fetchReplies()
+
+    // Set up polling with error handling
+    intervalId = setInterval(async () => {
+      try {
+        await fetchReplies()
+      } catch (error) {
+        console.error('Polling error:', error)
+        // Don't show toast for polling errors to avoid spam
+      }
+    }, 3000)
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [fetchReplies])
 
   const handleSendReply = async () => {
     if (!replyContent.trim() || !user) return
@@ -99,6 +137,16 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
       </div>
 
       <ScrollArea className="flex-1 p-4">
+        {error && (
+          <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        {isLoading && replies.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-muted-foreground">Loading replies...</p>
+          </div>
+        )}
         <div className="space-y-4">
           {/* Parent Message */}
           <div className="flex items-start gap-3">
@@ -122,21 +170,41 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
                     minute: '2-digit'
                   })}
                 </span>
-              </div>
-              <p className="text-sm whitespace-pre-wrap">
-                {message.content.startsWith('[File shared]') ? (
-                  <a 
-                    href={message.content.match(/\((.*?)\)/)?.[1]} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    View shared file
-                  </a>
-                ) : (
-                  message.content
+                {message.user?.id === user?.id && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={async () => {
+                          if (!confirm('Are you sure you want to delete this message?')) return
+
+                          try {
+                            await messageApi.deleteMessage(message.id)
+                            if (onReply) await onReply()
+                            onClose()
+                            toast.success('Message deleted')
+                          } catch (error) {
+                            console.error('Error deleting message:', error)
+                            toast.error(error instanceof Error ? error.message : 'Failed to delete message')
+                          }
+                        }}
+                      >
+                        Delete Message
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
-              </p>
+              </div>
+              <MessageContent content={message.content} />
             </div>
           </div>
 
@@ -163,21 +231,41 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
                       minute: '2-digit'
                     })}
                   </span>
-                </div>
-                <p className="text-sm whitespace-pre-wrap">
-                  {reply.content.startsWith('[File shared]') ? (
-                    <a 
-                      href={reply.content.match(/\((.*?)\)/)?.[1]} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      View shared file
-                    </a>
-                  ) : (
-                    reply.content
+                  {reply.user?.id === user?.id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={async () => {
+                            if (!confirm('Are you sure you want to delete this reply?')) return
+
+                            try {
+                              await messageApi.deleteMessage(reply.id)
+                              await fetchReplies()
+                              if (onReply) await onReply()
+                              toast.success('Reply deleted')
+                            } catch (error) {
+                              console.error('Error deleting reply:', error)
+                              toast.error(error instanceof Error ? error.message : 'Failed to delete reply')
+                            }
+                          }}
+                        >
+                          Delete Reply
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
-                </p>
+                </div>
+                <MessageContent content={reply.content} />
                 
                 {/* Reactions */}
                 <div className="flex items-center gap-2 mt-2">
@@ -225,17 +313,11 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
 
       <div className="p-4 border-t">
         <div className="flex items-center gap-2">
-          <textarea
+          <RichTextInput
             value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
+            onChange={setReplyContent}
+            onSubmit={handleSendReply}
             placeholder="Reply to thread..."
-            className="flex-1 min-h-[80px] p-2 rounded-md border resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSendReply()
-              }
-            }}
           />
           <Button onClick={handleSendReply}>Reply</Button>
         </div>

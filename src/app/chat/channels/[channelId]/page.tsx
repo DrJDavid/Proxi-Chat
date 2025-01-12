@@ -1,8 +1,8 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { Hash, MessageCircle, Paperclip, Send, SmilePlus } from "lucide-react"
-import { useCallback, useState, KeyboardEvent, useEffect } from "react"
+import { Hash, MessageCircle, Paperclip, Send, SmilePlus, MoreHorizontal } from "lucide-react"
+import { useCallback, useState, KeyboardEvent, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { MessageThread } from "@/components/chat/MessageThread"
 import { usePolling } from "@/hooks/usePolling"
 import { useMessagesStore } from "@/store/messages"
 import { useUserStore } from "@/store/user"
+import { useChannelStore } from "@/store/channel"
 import { messageApi } from "@/lib/api/messages"
 import { type Message } from "@/types"
 import { toast } from "sonner"
@@ -20,24 +21,31 @@ import { getInitials } from "@/lib/utils"
 import { EmojiPicker } from "@/components/ui/emoji-picker"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { FileUpload } from "@/components/chat/file-upload"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MessageContent } from "@/components/chat/MessageContent"
+import { RichTextInput } from "@/components/chat/RichTextInput"
 
 export default function ChannelPage() {
   const { channelId } = useParams() as { channelId: string }
   const [message, setMessage] = useState("")
-  const { messages, setMessages } = useMessagesStore()
+  const { messages: allMessages, setMessages } = useMessagesStore()
   const { user, fetchUser } = useUserStore()
   const [channelUuid, setChannelUuid] = useState<string | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
   const [showFileUpload, setShowFileUpload] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { fetchChannels, selectedChannel, setSelectedChannel, incrementUnread } = useChannelStore()
+  const lastFetchRef = useRef<number>(0)
 
   // Fetch user data on mount
   useEffect(() => {
     fetchUser()
   }, [fetchUser])
 
-  // Fetch channel UUID on mount
+  // Fetch channel UUID and set as selected channel on mount
   useEffect(() => {
     async function getChannelUuid() {
       try {
@@ -48,6 +56,7 @@ export default function ChannelPage() {
           return
         }
         setChannelUuid(channel.id)
+        setSelectedChannel(channel) // Set this channel as selected when we enter it
       } catch (error) {
         console.error('Error fetching channel:', error)
         if (error instanceof Error) {
@@ -60,38 +69,76 @@ export default function ChannelPage() {
     }
 
     getChannelUuid()
-  }, [channelId, router])
+
+    // Clear selected channel when leaving the page
+    return () => {
+      setSelectedChannel(null)
+    }
+  }, [channelId, router, setSelectedChannel])
 
   const fetchChannelMessages = useCallback(async () => {
     if (!channelUuid) return []
+    
+    // Prevent concurrent fetches
+    const now = Date.now()
+    if (now - lastFetchRef.current < 1000) return [] // Debounce fetches
+    lastFetchRef.current = now
 
     try {
-      const messages = await messageApi.fetchMessages(channelUuid)
-      setMessages(channelId, messages)
-      return messages
+      setIsLoading(true)
+      setError(null)
+      const newMessages = await messageApi.fetchMessages(channelUuid, { limit: 50 })
+      const currentMessages = allMessages[channelId] || []
+
+      // Only update if we have new messages
+      if (newMessages.length !== currentMessages.length) {
+        if (newMessages.length > currentMessages.length && channelUuid !== selectedChannel?.id) {
+          incrementUnread(channelUuid)
+        }
+        setMessages(channelId, newMessages)
+      }
+      
+      return newMessages
     } catch (error) {
       console.error('Error fetching messages:', error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Failed to load messages')
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load messages'
+      setError(errorMessage)
+      toast.error(errorMessage)
       throw error
+    } finally {
+      setIsLoading(false)
     }
-  }, [channelId, channelUuid, setMessages])
+  }, [channelId, channelUuid, setMessages, selectedChannel, incrementUnread, allMessages])
 
-  const { error, isLoading } = usePolling(
-    fetchChannelMessages,
-    3000,
-    Boolean(channelUuid)
-  )
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout
+
+    if (channelUuid) {
+      // Initial fetch
+      fetchChannelMessages()
+
+      // Set up polling with error handling
+      intervalId = setInterval(async () => {
+        try {
+          await fetchChannelMessages()
+        } catch (error) {
+          console.error('Polling error:', error)
+          // Don't show toast for polling errors to avoid spam
+        }
+      }, 3000)
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [channelUuid, fetchChannelMessages])
 
   const handleSubmit = async () => {
     if (!message.trim() || !user || !channelUuid) return
 
     try {
       await messageApi.sendMessage({
-        content: message.trim(),
+        content: message,
         channelId: channelUuid,
         senderId: user.id
       })
@@ -158,7 +205,21 @@ export default function ChannelPage() {
     }
   }
 
-  const channelMessages = messages[channelId] || []
+  const handleLeaveChannel = async () => {
+    if (!channelUuid) return
+
+    try {
+      await channelApi.leaveChannel(channelUuid)
+      await fetchChannels()
+      toast.success('Left channel successfully')
+      router.push('/chat')
+    } catch (error) {
+      console.error('Error leaving channel:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to leave channel')
+    }
+  }
+
+  const channelMessages = allMessages[channelId] || []
 
   if (!user || !channelUuid) {
     return (
@@ -171,17 +232,60 @@ export default function ChannelPage() {
   return (
     <div className="flex h-full">
       <div className="flex-1 flex flex-col">
-        <div className="flex h-14 items-center border-b px-4">
+        <div className="flex h-14 items-center justify-between border-b px-4">
           <div className="flex items-center gap-2">
             <Hash className="h-5 w-5" />
             <h1 className="text-lg font-semibold">{channelId}</h1>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {user.id === selectedChannel?.created_by && (
+                <DropdownMenuItem 
+                  className="text-destructive"
+                  onClick={async () => {
+                    if (!channelUuid) return
+                    if (!confirm('Are you sure you want to delete this channel? This will delete all messages and cannot be undone.')) return
+
+                    try {
+                      await channelApi.deleteChannel(channelUuid)
+                      await fetchChannels()
+                      toast.success('Channel deleted successfully')
+                      router.push('/chat')
+                    } catch (error) {
+                      console.error('Error deleting channel:', error)
+                      toast.error(error instanceof Error ? error.message : 'Failed to delete channel')
+                    }
+                  }}
+                >
+                  Delete Channel
+                </DropdownMenuItem>
+              )}
+              {user.id !== selectedChannel?.created_by && (
+                <DropdownMenuItem 
+                  className="text-destructive"
+                  onClick={handleLeaveChannel}
+                >
+                  Leave Channel
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex-1 overflow-auto p-4">
           {error && (
             <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
-              Failed to load messages. Please try again later.
+              {error}
+            </div>
+          )}
+          {isLoading && channelMessages.length === 0 && (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">Loading messages...</p>
             </div>
           )}
           <div className="space-y-4">
@@ -207,21 +311,40 @@ export default function ChannelPage() {
                         minute: '2-digit'
                       })}
                     </span>
-                  </div>
-                  <p className="text-sm whitespace-pre-wrap">
-                    {message.content.startsWith('[File shared]') ? (
-                      <a 
-                        href={message.content.match(/\((.*?)\)/)?.[1]} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        View shared file
-                      </a>
-                    ) : (
-                      message.content
+                    {message.user?.id === user.id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={async () => {
+                              if (!confirm('Are you sure you want to delete this message?')) return
+
+                              try {
+                                await messageApi.deleteMessage(message.id)
+                                await fetchChannelMessages()
+                                toast.success('Message deleted')
+                              } catch (error) {
+                                console.error('Error deleting message:', error)
+                                toast.error(error instanceof Error ? error.message : 'Failed to delete message')
+                              }
+                            }}
+                          >
+                            Delete Message
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
-                  </p>
+                  </div>
+                  <MessageContent content={message.content} />
                   
                   {/* Reactions */}
                   <div className="flex items-center gap-2 mt-2">
@@ -296,13 +419,14 @@ export default function ChannelPage() {
                 />
               </DialogContent>
             </Dialog>
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={`Message #${channelId}`}
-              className="min-h-[80px]"
-              onKeyDown={handleKeyPress}
-            />
+            <div className="flex-1">
+              <RichTextInput
+                value={message}
+                onChange={setMessage}
+                onSubmit={handleSubmit}
+                placeholder={`Message #${channelId}`}
+              />
+            </div>
             <Button 
               onClick={handleSubmit} 
               size="icon"
@@ -319,7 +443,9 @@ export default function ChannelPage() {
         <MessageThread
           message={selectedMessage}
           onClose={() => setSelectedMessage(null)}
-          onReply={fetchChannelMessages}
+          onReply={async () => {
+            await fetchChannelMessages();
+          }}
         />
       )}
     </div>

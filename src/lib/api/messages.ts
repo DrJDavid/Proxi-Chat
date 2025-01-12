@@ -222,5 +222,31 @@ export const messageApi = {
 
     if (error) throw error
     return data
+  },
+
+  async deleteMessage(messageId: string) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) throw sessionError
+    if (!session?.user) throw new Error('Not authenticated')
+
+    // Check if user is the sender
+    const { data: message } = await supabase
+      .from('messages')
+      .select('sender_id')
+      .eq('id', messageId)
+      .single()
+
+    if (message?.sender_id !== session.user.id) {
+      throw new Error('Only the message sender can delete this message')
+    }
+
+    // Delete the message (this will cascade delete reactions due to foreign key constraints)
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', messageId)
+      .eq('sender_id', session.user.id)
+
+    if (error) throw error
   }
 } 

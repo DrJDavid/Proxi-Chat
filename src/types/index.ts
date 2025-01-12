@@ -1,18 +1,28 @@
 export interface User {
   id: string
-  username: string | null
-  full_name: string | null
-  avatar_url: string | null
-  status: 'online' | 'offline' | 'away'
-  last_seen: string | null
+  username: string
+  avatar_url?: string
+  created_at: string
+  online?: boolean
+  status?: 'online' | 'offline' | 'away'
 }
 
 export interface Channel {
   id: string
   name: string
-  description: string | null
+  description?: string
   created_by: string
   created_at: string
+  updated_at: string
+  creator?: User
+  member_count?: number
+}
+
+export interface ChannelMember {
+  channel_id: string
+  user_id: string
+  joined_at: string
+  user?: User
 }
 
 export interface Message {

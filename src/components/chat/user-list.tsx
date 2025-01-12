@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { MessageSquare } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { type User } from '@/types'
+import { DirectMessageDialog } from './direct-message-dialog'
 
 interface UserListProps {
   users: User[]
@@ -49,7 +50,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
                   <div>
                     <div className="font-medium">{user.username}</div>
                     <div className="text-xs text-muted-foreground">
-                      {user.status === 'online' ? 'Online' : 'Offline'}
+                      {user.status || 'Offline'}
                     </div>
                   </div>
                 </div>
