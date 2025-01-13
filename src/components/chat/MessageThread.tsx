@@ -334,13 +334,24 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
 
       <div className="p-4 border-t">
         <div className="flex items-center gap-2">
-          <RichTextInput
-            value={replyContent}
-            onChange={setReplyContent}
-            onSubmit={handleSendReply}
-            placeholder="Reply to thread..."
-          />
-          <Button onClick={handleSendReply}>Reply</Button>
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSendReply()
+            }}
+            className="flex gap-2 w-full"
+          >
+            <RichTextInput
+              value={replyContent}
+              onChange={setReplyContent}
+              onSubmit={handleSendReply}
+              placeholder="Reply to thread..."
+              className="flex-1"
+            />
+            <Button type="submit" disabled={!replyContent.trim()}>
+              Reply
+            </Button>
+          </form>
         </div>
       </div>
     </div>

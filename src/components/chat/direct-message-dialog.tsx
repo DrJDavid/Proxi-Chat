@@ -386,6 +386,12 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
                 onChange={(e) => setMessageContent(e.target.value)}
                 placeholder="Type a message..."
                 className="flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMessage()
+                  }
+                }}
               />
               <Button type="submit" disabled={!messageContent.trim()}>
                 <Send className="h-5 w-5" />
