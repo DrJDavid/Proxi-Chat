@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChannelList } from '@/components/chat/channel-list'
-import { DebugCreateChannel } from '@/components/chat/debug-create-channel'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -68,9 +67,6 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-2">Welcome to ProxiChat</h1>
       <p className="text-muted-foreground mb-8">Join channels to start chatting with others.</p>
       <ChannelList />
-      <div className="flex justify-center">
-        <DebugCreateChannel />
-      </div>
     </main>
   )
 }

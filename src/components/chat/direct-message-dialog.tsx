@@ -135,6 +135,8 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
     selectedUser 
   } = useDirectMessageStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
 
   const messages = allMessages[recipient.id] || []
 
@@ -274,14 +276,25 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
     }
   }
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      const scrollArea = scrollAreaRef.current
+      scrollArea.scrollTop = scrollArea.scrollHeight
+    }
+  }, [])
 
-  // Scroll to bottom on initial load and when messages change
+  // Scroll to bottom when messages load or change
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, scrollToBottom])
+
+  // Scroll to bottom when dialog opens
+  useEffect(() => {
+    if (isOpen && !hasScrolledToBottom) {
+      scrollToBottom()
+      setHasScrolledToBottom(true)
+    }
+  }, [isOpen, hasScrolledToBottom, scrollToBottom])
 
   const handleClose = () => {
     setIsOpen(false)
@@ -314,7 +327,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl h-[80vh]">
+      <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
         <DialogHeader className="flex-none">
           <DialogTitle className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
@@ -327,8 +340,11 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1">
-          <div className="p-4">
+        <ScrollArea 
+          ref={scrollAreaRef}
+          className="flex-1"
+        >
+          <div className="p-4 h-full flex flex-col justify-end">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -455,7 +471,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                                     handleAddReaction(message.id, emoji)
                                     setShowEmojiPicker(null)
                                   }}
-                                  onClose={() => setShowEmojiPicker(null)}
+                                  onClickOutside={() => setShowEmojiPicker(null)}
                                 />
                               </div>
                             )}
@@ -464,7 +480,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                       )}
                     </div>
                   </div>
-                  {message.reactions?.length > 0 && (
+                  {message.reactions && message.reactions.length > 0 && (
                     <div className="flex gap-1 mt-1">
                       {Array.from(new Set(message.reactions.map(r => r.emoji))).map((emoji) => (
                         <Button

@@ -7,15 +7,17 @@ import {
   Strikethrough,
   List
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface RichTextInputProps {
   value: string
   onChange: (value: string) => void
   onSubmit: () => void
   placeholder?: string
+  className?: string
 }
 
-export function RichTextInput({ value, onChange, onSubmit, placeholder }: RichTextInputProps) {
+export function RichTextInput({ value, onChange, onSubmit, placeholder, className }: RichTextInputProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const isInitialMount = useRef(true)
 
@@ -161,7 +163,10 @@ export function RichTextInput({ value, onChange, onSubmit, placeholder }: RichTe
       <div
         ref={editorRef}
         contentEditable
-        className="min-h-[80px] p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-ring whitespace-pre-wrap empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground"
+        className={cn(
+          "min-h-[80px] p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-ring whitespace-pre-wrap empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground",
+          className
+        )}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
         data-placeholder={placeholder}

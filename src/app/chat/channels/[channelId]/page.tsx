@@ -6,15 +6,13 @@ import { useCallback, useState, KeyboardEvent, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MessageThread } from "@/components/chat/MessageThread"
-import { usePolling } from "@/hooks/usePolling"
 import { useMessagesStore } from "@/store/messages"
 import { useUserStore } from "@/lib/store/useUserStore"
 import { useChannelStore } from "@/store/channel"
 import { messageApi } from "@/lib/api/messages"
-import { type Message, type Channel, type User } from "@/types/index"
+import { type Message, type Channel, type Reaction } from "@/types/index"
 import { toast } from "sonner"
 import { channelApi } from "@/lib/api/channels"
 import { getInitials } from "@/lib/utils"
@@ -224,13 +222,6 @@ export default function ChannelPage() {
     }
   }
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit()
-    }
-  }
-
   const handleReaction = async (messageId: string, emoji: string) => {
     if (!currentUser) return
 
@@ -247,20 +238,21 @@ export default function ChannelPage() {
           // Remove reaction
           updatedReactions = updatedReactions.filter(r => r.id !== existingReaction.id)
         } else {
-          // Add reaction
-          updatedReactions = [
-            ...updatedReactions,
-            {
-              id: `temp-${Date.now()}`,
-              emoji,
-              created_at: new Date().toISOString(),
-              user: {
-                id: currentUser.id,
-                username: currentUser.username,
-                avatar_url: currentUser.avatar_url
-              }
+          // Add reaction with proper typing
+          const newReaction: Reaction = {
+            id: `temp-${Date.now()}`,
+            emoji,
+            message_id: messageId,
+            user_id: currentUser.id,
+            created_at: new Date().toISOString(),
+            user: {
+              id: currentUser.id,
+              username: currentUser.username,
+              avatar_url: currentUser.avatar_url,
+              created_at: currentUser.created_at
             }
-          ]
+          }
+          updatedReactions = [...updatedReactions, newReaction]
         }
 
         const updatedMessage = {
@@ -626,7 +618,7 @@ export default function ChannelPage() {
                               handleReaction(message.id, emoji)
                               setShowEmojiPicker(null)
                             }}
-                            onClose={() => setShowEmojiPicker(null)}
+                            onClickOutside={() => setShowEmojiPicker(null)}
                           />
                         </div>
                       )}
@@ -638,8 +630,8 @@ export default function ChannelPage() {
                       onClick={() => setSelectedMessage(message)}
                     >
                       <MessageCircle className="h-4 w-4" />
-                      {message.reply_count > 0 && (
-                        <span className="ml-1 text-xs">{message.reply_count}</span>
+                      {(message.reply_count ?? 0) > 0 && (
+                        <span className="ml-1 text-xs">{message.reply_count} replies</span>
                       )}
                     </Button>
                   </div>

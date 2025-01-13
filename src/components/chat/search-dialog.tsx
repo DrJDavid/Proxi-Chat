@@ -63,10 +63,10 @@ export function SearchDialog() {
           edited_at: msg.edited_at,
           channel_id: msg.channel_id,
           sender_id: msg.sender_id,
+          receiver_id: msg.receiver_id || undefined,
           user: sender,
-          receiver_id: msg.receiver_id,
           reactions: msg.reactions || []
-        }
+        } as Message
       })
 
       setMessages(transformedMessages)

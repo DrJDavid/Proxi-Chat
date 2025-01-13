@@ -7,7 +7,7 @@ interface UserStore {
   currentUser: User | null
   isLoading: boolean
   error: Error | null
-  setCurrentUser: (user: User) => void
+  setCurrentUser: (user: User | null) => void
   startPolling: () => void
   stopPolling: () => void
   fetchUsers: () => Promise<void>
@@ -25,16 +25,18 @@ export const useUserStore = create<UserStore>((set, get) => ({
   isLoading: false,
   error: null,
 
-  setCurrentUser: (user: User) => {
+  setCurrentUser: (user: User | null) => {
     set(state => ({
       currentUser: user,
-      // Also update the user in the users array
-      users: state.users.map(u => 
-        u.id === user.id ? user : u
-      )
+      // Only update users array if user is not null
+      users: user ? state.users.map(u => u.id === user.id ? user : u) : state.users
     }))
-    // Start polling when current user is set
-    get().startPolling()
+    // Start polling only when setting a user, stop when clearing
+    if (user) {
+      get().startPolling()
+    } else {
+      get().stopPolling()
+    }
   },
 
   startPolling: () => {
