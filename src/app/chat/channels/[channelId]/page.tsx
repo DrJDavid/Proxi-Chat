@@ -26,6 +26,29 @@ import { MessageContent } from "@/components/chat/MessageContent"
 import { RichTextInput } from "@/components/chat/RichTextInput"
 import { EditChannel } from "@/components/chat/edit-channel"
 
+// Helper function to format timestamp
+function formatTimestamp(date: string) {
+  const messageDate = new Date(date)
+  const now = new Date()
+  const isToday = messageDate.toDateString() === now.toDateString()
+  const isThisYear = messageDate.getFullYear() === now.getFullYear()
+
+  const time = messageDate.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+
+  if (isToday) {
+    return time
+  }
+
+  if (isThisYear) {
+    return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`
+  }
+
+  return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} ${time}`
+}
+
 export default function ChannelPage() {
   const { channelId } = useParams() as { channelId: string }
   const [message, setMessage] = useState("")
@@ -452,12 +475,9 @@ export default function ChannelPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{message.user?.username}</span>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(message.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatTimestamp(message.created_at)}
                       {message.edited_at && (
-                        <span className="ml-1 text-xs text-muted-foreground">(edited)</span>
+                        <span className="ml-1">(edited)</span>
                       )}
                     </span>
                     {message.user?.id === currentUser.id && (

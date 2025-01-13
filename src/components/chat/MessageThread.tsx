@@ -22,6 +22,29 @@ interface MessageThreadProps {
   onReply?: () => Promise<void>
 }
 
+// Helper function to format timestamp
+function formatTimestamp(date: string) {
+  const messageDate = new Date(date)
+  const now = new Date()
+  const isToday = messageDate.toDateString() === now.toDateString()
+  const isThisYear = messageDate.getFullYear() === now.getFullYear()
+
+  const time = messageDate.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+
+  if (isToday) {
+    return time
+  }
+
+  if (isThisYear) {
+    return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`
+  }
+
+  return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} ${time}`
+}
+
 export function MessageThread({ message, onClose, onReply }: MessageThreadProps) {
   const [replyContent, setReplyContent] = useState('')
   const [replies, setReplies] = useState<Message[]>([])
@@ -186,10 +209,7 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
               <div className="flex items-center gap-2">
                 <span className="font-semibold">{message.user?.username}</span>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(message.created_at).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  {formatTimestamp(message.created_at)}
                 </span>
                 {message.user?.id === user?.id && (
                   <DropdownMenu>
@@ -247,10 +267,7 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{reply.user?.username}</span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(reply.created_at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {formatTimestamp(reply.created_at)}
                   </span>
                   {reply.user?.id === user?.id && (
                     <DropdownMenu>

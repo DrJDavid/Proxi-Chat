@@ -94,6 +94,29 @@ function formatMessageContent(content: string) {
   return <>{parts}</>
 }
 
+// Helper function to format timestamp
+function formatTimestamp(date: string) {
+  const messageDate = new Date(date)
+  const now = new Date()
+  const isToday = messageDate.toDateString() === now.toDateString()
+  const isThisYear = messageDate.getFullYear() === now.getFullYear()
+
+  const time = messageDate.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+
+  if (isToday) {
+    return time
+  }
+
+  if (isThisYear) {
+    return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`
+  }
+
+  return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} ${time}`
+}
+
 export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
   const [messageContent, setMessageContent] = useState('')
   const [showFileUpload, setShowFileUpload] = useState(false)
@@ -279,6 +302,9 @@ export function DirectMessageDialog({ recipient }: DirectMessageDialogProps) {
                       }`}
                     >
                       {formatMessageContent(message.content)}
+                      <div className="text-xs mt-1 opacity-70">
+                        {formatTimestamp(message.created_at)}
+                      </div>
                     </div>
                     <div className="flex-shrink-0 opacity-0 group-hover:opacity-100">
                       <Button
