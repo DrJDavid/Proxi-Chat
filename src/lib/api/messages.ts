@@ -249,29 +249,32 @@ export const messageApi = {
   },
 
   async deleteMessage(messageId: string) {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) throw sessionError
-    if (!session?.user) throw new Error('Not authenticated')
+    try {
+      // First delete any replies to this message
+      const { error: repliesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('parent_message_id', messageId)
 
-    // Check if user is the sender
-    const { data: message } = await supabase
-      .from('messages')
-      .select('sender_id')
-      .eq('id', messageId)
-      .single()
+      if (repliesError) {
+        console.error('Error deleting replies:', repliesError)
+        throw new Error('Failed to delete message replies')
+      }
 
-    if (message?.sender_id !== session.user.id) {
-      throw new Error('Only the message sender can delete this message')
+      // Then delete the message itself
+      const { error: deleteError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId)
+
+      if (deleteError) {
+        console.error('Error deleting message:', deleteError)
+        throw new Error('Failed to delete message')
+      }
+    } catch (error) {
+      console.error('Error in deleteMessage:', error)
+      throw error
     }
-
-    // Delete the message (this will cascade delete reactions due to foreign key constraints)
-    const { error } = await supabase
-      .from('messages')
-      .delete()
-      .eq('id', messageId)
-      .eq('sender_id', session.user.id)
-
-    if (error) throw error
   },
 
   async editMessage(messageId: string, content: string) {

@@ -492,7 +492,7 @@ export default function ChannelPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => {
                               setEditingMessage(message)
                               setEditContent(message.content)
@@ -501,11 +501,11 @@ export default function ChannelPage() {
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit Message
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive"
                             onClick={async () => {
                               if (!confirm('Are you sure you want to delete this message?')) return
-
+                              
                               try {
                                 await messageApi.deleteMessage(message.id)
                                 await fetchChannelMessages()
