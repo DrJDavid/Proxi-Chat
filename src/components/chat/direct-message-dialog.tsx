@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Paperclip, Send, MoreHorizontal, Smile, SmilePlus } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Paperclip, Send, MoreHorizontal, SmilePlus } from 'lucide-react'
 import { messageApi } from '@/lib/api/messages'
 import { useUserStore } from '@/store/user'
 import { useDirectMessageStore } from '@/store/direct-messages'
@@ -22,7 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import Link from 'next/link'
 
 interface DirectMessageDialogProps {
   recipient: User
@@ -138,7 +137,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
 
-  const messages = allMessages[recipient.id] || []
+  const messages = useMemo(() => allMessages[recipient.id] || [], [allMessages, recipient.id])
 
   const fetchMessages = useCallback(async () => {
     if (!user) return []

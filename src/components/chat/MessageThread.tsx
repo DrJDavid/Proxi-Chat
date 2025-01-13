@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { MessageCircle, X, SmilePlus, MoreHorizontal } from 'lucide-react'
+import { X, SmilePlus, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -10,7 +10,6 @@ import { useUserStore } from '@/store/user'
 import { type Message } from '@/types'
 import { toast } from 'sonner'
 import { getInitials } from '@/lib/utils'
-import { usePolling } from '@/hooks/usePolling'
 import { EmojiPicker } from '@/components/ui/emoji-picker'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MessageContent } from "@/components/chat/MessageContent"
@@ -85,13 +84,7 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
   }, [message.id])
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout
-
-    // Initial fetch
-    fetchReplies()
-
-    // Set up polling with error handling
-    intervalId = setInterval(async () => {
+    const intervalId: NodeJS.Timeout = setInterval(async () => {
       try {
         await fetchReplies()
       } catch (error) {
@@ -99,6 +92,9 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
         // Don't show toast for polling errors to avoid spam
       }
     }, 3000)
+
+    // Initial fetch
+    fetchReplies()
 
     return () => {
       if (intervalId) clearInterval(intervalId)

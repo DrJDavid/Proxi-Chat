@@ -2,7 +2,7 @@ import supabase from '@/lib/supabase/client'
 import { type Message, type User } from '@/types'
 
 export const searchApi = {
-  async search(query: string, channelId?: string) {
+  async search(query: string) {
     // Return empty results for empty queries
     if (!query || query.trim().length < 2) {
       return { messages: [], users: [] }

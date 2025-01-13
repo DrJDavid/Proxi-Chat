@@ -61,6 +61,7 @@ export default function ChannelPage() {
   const router = useRouter()
   const { fetchChannels, selectedChannel, setSelectedChannel, incrementUnread } = useChannelStore()
   const lastFetchRef = useRef<number>(0)
+  const lastMessageCountRef = useRef<number>(0)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [editContent, setEditContent] = useState("")
   const [showEditChannel, setShowEditChannel] = useState(false)
@@ -149,16 +150,16 @@ export default function ChannelPage() {
       setIsLoading(true)
       setError(null)
       const newMessages = await messageApi.fetchMessages(channelUuid, { limit: 50 })
-      const currentMessages = allMessages[channelId] || []
-
+      
       // Only update if we have new messages
-      if (newMessages.length > currentMessages.length) {
+      if (newMessages.length > lastMessageCountRef.current) {
         // Only increment unread if this is not the currently viewed channel
         if (window.location.pathname !== `/chat/channels/${channelId}`) {
           console.log('Incrementing unread for channel:', channelId)
           incrementUnread(channelUuid)
         }
         setMessages(channelId, newMessages)
+        lastMessageCountRef.current = newMessages.length
       }
       
       return newMessages
@@ -171,7 +172,13 @@ export default function ChannelPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [channelId, channelUuid, setMessages, incrementUnread, allMessages])
+  }, [channelId, channelUuid, setMessages, incrementUnread])
+
+  // Update lastMessageCountRef when messages change
+  useEffect(() => {
+    const currentMessages = allMessages[channelId] || []
+    lastMessageCountRef.current = currentMessages.length
+  }, [allMessages, channelId])
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout

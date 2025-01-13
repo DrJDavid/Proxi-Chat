@@ -1,6 +1,20 @@
 import supabase from '@/lib/supabase/client'
 import { type Channel, type ChannelMember } from '@/types'
 
+interface RawChannelData {
+  id: string
+  name: string
+  description?: string
+  created_by: string
+  created_at: string
+  creator: {
+    id: string
+    username: string
+    avatar_url: string | null
+  }
+  member_count: Array<{ count: number }>
+}
+
 export const channelApi = {
   async getChannels() {
     console.log('Starting getChannels...')
@@ -40,7 +54,7 @@ export const channelApi = {
     }
     
     // Transform the count from { count: number } to just number
-    const transformedChannels = (data as any[]).map(channel => ({
+    const transformedChannels = (data as RawChannelData[]).map(channel => ({
       ...channel,
       member_count: channel.member_count[0]?.count || 0
     }))
@@ -222,7 +236,7 @@ export const channelApi = {
 
     if (error) throw error
 
-    return (data as any[]).map(channel => ({
+    return (data as RawChannelData[]).map(channel => ({
       ...channel,
       member_count: channel.member_count[0]?.count || 0
     })) as Channel[]

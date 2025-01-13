@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { channelApi } from '@/lib/api/channels'
 import { useChannelStore } from '@/store/channel'
@@ -18,7 +18,7 @@ export function JoinChannelButton({ channelId, onJoinStateChange }: JoinChannelB
   const { fetchChannels } = useChannelStore()
   const { toast } = useToast()
 
-  const checkMembership = async () => {
+  const checkMembership = useCallback(async () => {
     try {
       const isMember = await channelApi.isChannelMember(channelId)
       setIsJoined(isMember)
@@ -27,11 +27,11 @@ export function JoinChannelButton({ channelId, onJoinStateChange }: JoinChannelB
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [channelId])
 
   useEffect(() => {
     checkMembership()
-  }, [channelId])
+  }, [channelId, checkMembership])
 
   const handleClick = async () => {
     if (isLoading || isJoined) return // Prevent action if already joined

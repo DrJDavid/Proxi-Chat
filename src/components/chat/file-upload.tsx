@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { toast } from 'sonner'
 import { filesApi } from '@/lib/api/files'

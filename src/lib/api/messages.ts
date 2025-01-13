@@ -1,6 +1,5 @@
 import supabase from '@/lib/supabase/client'
 import { type Message, type Reaction } from '@/types'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export const messageApi = {
   async fetchMessages(channelId: string, options: {

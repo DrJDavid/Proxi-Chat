@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { User, LogOut, Settings, Sun, Moon, Laptop, Home, Upload } from 'lucide-react'
+import { LogOut, Settings, Sun, Moon, Laptop, Home, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -32,7 +32,7 @@ import { SearchDialog } from '@/components/chat/search-dialog'
 export function TopNav() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-  const { currentUser: user, updateCurrentUserStatus, setCurrentUser } = useUserStore()
+  const { currentUser: user, setCurrentUser } = useUserStore()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [displayName, setDisplayName] = useState(user?.username || '')
   const [status, setStatus] = useState(user?.status_message || '')
@@ -40,23 +40,6 @@ export function TopNav() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   if (!user) return null
-
-  const refreshUser = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-
-      if (error) throw error
-      if (data) {
-        setCurrentUser(data)
-      }
-    } catch (error) {
-      console.error('Error refreshing user:', error)
-    }
-  }
 
   const handleLogout = async () => {
     try {
@@ -158,7 +141,7 @@ export function TopNav() {
       console.log('Starting avatar upload:', { fileName, fileType: file.type, fileSize: file.size })
 
       // First, try to get the bucket
-      const { data: bucketData, error: bucketError } = await supabase
+      const { error: bucketError } = await supabase
         .storage
         .getBucket('avatars')
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, KeyboardEvent, useEffect } from 'react'
+import React, { useRef, KeyboardEvent, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
   Bold, 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -69,7 +69,7 @@ export function Sidebar() {
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false)
 
   // Function to fetch channels
-  const refreshChannels = async () => {
+  const refreshChannels = useCallback(async () => {
     if (!currentUser) return
     try {
       await fetchChannels()
@@ -81,7 +81,7 @@ export function Sidebar() {
         toast.error('Failed to load channels')
       }
     }
-  }
+  }, [currentUser, fetchChannels])
 
   useEffect(() => {
     async function fetchRecentDms() {
@@ -113,7 +113,7 @@ export function Sidebar() {
   // Initial channel fetch
   useEffect(() => {
     refreshChannels()
-  }, [currentUser])
+  }, [currentUser, refreshChannels])
 
   // Set up polling for channel updates
   useEffect(() => {
@@ -121,7 +121,7 @@ export function Sidebar() {
 
     const interval = setInterval(refreshChannels, 5000) // Poll every 5 seconds
     return () => clearInterval(interval)
-  }, [currentUser])
+  }, [currentUser, refreshChannels])
 
   if (!currentUser) return null
 

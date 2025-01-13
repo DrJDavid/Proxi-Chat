@@ -19,7 +19,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { useDirectMessageStore } from '@/store/direct-messages'
-import { channelApi } from '@/lib/api/channels'
 import { toast } from 'sonner'
 import { useChannelStore } from '@/store/channel'
 import { useUserStore } from '@/store/user'
@@ -27,7 +26,6 @@ import { useUserStore } from '@/store/user'
 export function SearchDialog() {
   const router = useRouter()
   const params = useParams()
-  const channelId = params?.channelId as string
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
@@ -175,7 +173,7 @@ export function SearchDialog() {
                       {messages.map((message) => {
                         const isDM = !message.channel_id
                         const otherUserId = isDM ? (message.sender_id === user?.id ? message.receiver_id : message.sender_id) : null
-                        let otherUser = isDM ? (
+                        const otherUser = isDM ? (
                           message.user?.id === otherUserId ? message.user : users.find(u => u.id === otherUserId)
                         ) : null
                         const channel = !isDM ? channels.find(c => c.id === message.channel_id) : null
