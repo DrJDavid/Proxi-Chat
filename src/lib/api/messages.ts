@@ -250,18 +250,7 @@ export const messageApi = {
 
   async deleteMessage(messageId: string) {
     try {
-      // First delete any replies to this message
-      const { error: repliesError } = await supabase
-        .from('messages')
-        .delete()
-        .eq('parent_message_id', messageId)
-
-      if (repliesError) {
-        console.error('Error deleting replies:', repliesError)
-        throw new Error('Failed to delete message replies')
-      }
-
-      // Then delete the message itself
+      // Delete the message itself first
       const { error: deleteError } = await supabase
         .from('messages')
         .delete()
@@ -271,6 +260,8 @@ export const messageApi = {
         console.error('Error deleting message:', deleteError)
         throw new Error('Failed to delete message')
       }
+
+      return true
     } catch (error) {
       console.error('Error in deleteMessage:', error)
       throw error

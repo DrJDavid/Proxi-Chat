@@ -192,30 +192,16 @@ export default function ChannelPage() {
     if (!message.trim() || !currentUser || !channelUuid) return
 
     try {
-      // Optimistically add the message
-      const optimisticMessage = {
-        id: `temp-${Date.now()}`,
-        content: message,
-        channel_id: channelUuid,
-        sender_id: currentUser.id,
-        created_at: new Date().toISOString(),
-        user: currentUser,
-        reactions: [],
-        reply_count: 0
-      }
-
-      setMessages(channelId, [...channelMessages, optimisticMessage])
-      setMessage("")
-
-      // Make the API call
-      await messageApi.sendMessage({
+      // Make the API call first
+      const newMessage = await messageApi.sendMessage({
         content: message,
         channelId: channelUuid,
         senderId: currentUser.id
       })
 
-      // Fetch latest state
-      await fetchChannelMessages()
+      // Update UI with the actual message from server
+      setMessages(channelId, [...channelMessages, newMessage])
+      setMessage("")
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)
@@ -223,8 +209,6 @@ export default function ChannelPage() {
         toast.error("Failed to send message")
       }
       console.error('Error sending message:', error)
-      // Revert optimistic update on error
-      await fetchChannelMessages()
     }
   }
 
@@ -506,9 +490,19 @@ export default function ChannelPage() {
                             onClick={async () => {
                               if (!confirm('Are you sure you want to delete this message?')) return
                               
+                              // Don't try to delete temporary messages
+                              if (message.id.startsWith('temp-')) {
+                                toast.error('Cannot delete unsaved message')
+                                return
+                              }
+                              
                               try {
+                                // Make the API call first
                                 await messageApi.deleteMessage(message.id)
-                                await fetchChannelMessages()
+                                
+                                // Update the messages store after successful deletion
+                                const updatedMessages = channelMessages.filter(m => m.id !== message.id)
+                                setMessages(channelId, updatedMessages)
                                 toast.success('Message deleted')
                               } catch (error) {
                                 console.error('Error deleting message:', error)
