@@ -66,6 +66,16 @@ export default function ChannelPage() {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [editContent, setEditContent] = useState("")
   const [showEditChannel, setShowEditChannel] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  // Scroll to bottom on initial load and when messages change
+  useEffect(() => {
+    scrollToBottom()
+  }, [allMessages[channelId]])
 
   // Initialize user polling on mount
   useEffect(() => {
@@ -606,6 +616,7 @@ export default function ChannelPage() {
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         </div>
 
