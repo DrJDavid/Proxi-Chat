@@ -204,14 +204,16 @@ export default function ChannelPage() {
     try {
       // Make the API call first
       const newMessage = await messageApi.sendMessage({
-        content: message,
+        content: message.trim(),
         channelId: channelUuid,
         senderId: currentUser.id
       })
 
       // Update UI with the actual message from server
-      setMessages(channelId, [...channelMessages, newMessage])
+      const updatedMessages = [...(allMessages[channelId] || []), newMessage]
+      setMessages(channelId, updatedMessages)
       setMessage("")
+      scrollToBottom()
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)
@@ -402,6 +404,30 @@ export default function ChannelPage() {
 
   const channelMessages = allMessages[channelId] || []
 
+  // Add this after the other useEffect hooks
+  useEffect(() => {
+    // Check for message ID in URL hash
+    const messageId = window.location.hash.replace('#message-', '')
+    if (messageId && channelMessages.length > 0) {
+      // Find the message element
+      const messageElement = document.getElementById(`message-${messageId}`)
+      if (messageElement) {
+        // Wait a bit for the UI to stabilize
+        setTimeout(() => {
+          messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Add a temporary highlight
+          messageElement.classList.add('bg-accent')
+          setTimeout(() => {
+            messageElement.classList.remove('bg-accent')
+          }, 2000)
+        }, 100)
+      }
+    } else {
+      // If no message to scroll to, scroll to bottom
+      scrollToBottom()
+    }
+  }, [channelId, channelMessages.length])
+
   if (!currentUser || !channelUuid) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -453,7 +479,11 @@ export default function ChannelPage() {
           )}
           <div className="space-y-4">
             {channelMessages.map((message) => (
-              <div key={message.id} className="flex items-start gap-3 group">
+              <div 
+                key={message.id} 
+                id={`message-${message.id}`}
+                className="flex items-start gap-3 group transition-colors duration-300"
+              >
                 <Avatar className="h-8 w-8">
                   {message.user?.avatar_url && (
                     <AvatarImage

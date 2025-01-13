@@ -189,24 +189,28 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
   }, [selectedUser, recipient.id, clearUnread])
 
   const handleSendMessage = async () => {
-    if (!messageContent.trim() || !user) return
+    if (!messageContent.trim() || !user || !selectedUser) return
 
     try {
-      const message = await messageApi.sendMessage({
+      // Make the API call first
+      const newMessage = await messageApi.sendMessage({
         content: messageContent.trim(),
-        senderId: user.id,
-        receiverId: recipient.id
+        receiverId: selectedUser.id,
+        senderId: user.id
       })
 
-      addMessage(recipient.id, message)
-      setMessageContent('')
+      // Update UI with the actual message from server
+      const updatedMessages = [...messages, newMessage]
+      setMessages(selectedUser.id, updatedMessages)
+      setMessageContent("")
+      scrollToBottom()
     } catch (error) {
-      console.error('Error sending message:', error)
       if (error instanceof Error) {
         toast.error(error.message)
       } else {
-        toast.error('Failed to send message')
+        toast.error("Failed to send message")
       }
+      console.error('Error sending message:', error)
     }
   }
 
@@ -460,7 +464,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                       )}
                     </div>
                   </div>
-                  {message.reactions && message.reactions.length > 0 && (
+                  {message.reactions?.length > 0 && (
                     <div className="flex gap-1 mt-1">
                       {Array.from(new Set(message.reactions.map(r => r.emoji))).map((emoji) => (
                         <Button
