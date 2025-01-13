@@ -22,6 +22,7 @@ import { useDirectMessageStore } from '@/store/direct-messages'
 import { channelApi } from '@/lib/api/channels'
 import { toast } from 'sonner'
 import { useChannelStore } from '@/store/channel'
+import { useUserStore } from '@/store/user'
 
 export function SearchDialog() {
   const router = useRouter()
@@ -35,6 +36,7 @@ export function SearchDialog() {
   const [debouncedQuery] = useDebounce(query, 300)
   const { setSelectedUser } = useDirectMessageStore()
   const { channels } = useChannelStore()
+  const { user } = useUserStore()
   const [isNavigating, setIsNavigating] = useState(false)
 
   const handleSearch = useCallback(async (searchQuery: string) => {
@@ -49,12 +51,31 @@ export function SearchDialog() {
       console.log('Searching for:', searchQuery)
       const results = await searchApi.search(searchQuery)
       console.log('Search results:', results)
-      setMessages(results.messages)
+      
+      // Transform messages to ensure they have the correct shape
+      const transformedMessages = results.messages.map(msg => {
+        // Ensure sender is a single user object, not an array
+        const sender = Array.isArray(msg.sender) ? msg.sender[0] : msg.sender
+        return {
+          id: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          edited_at: msg.edited_at,
+          channel_id: msg.channel_id,
+          sender_id: msg.sender_id,
+          user: sender,
+          receiver_id: msg.receiver_id,
+          reactions: msg.reactions || []
+        }
+      })
+
+      setMessages(transformedMessages)
       setUsers(results.users)
     } catch (error) {
       console.error('Search failed:', error)
       setMessages([])
       setUsers([])
+      toast.error('Search failed')
     } finally {
       setIsSearching(false)
     }
@@ -73,24 +94,45 @@ export function SearchDialog() {
     setIsNavigating(true)
 
     try {
+      // Close dialog before navigating
+      setOpen(false)
+
+      // If it's a DM (no channel_id), open DM dialog
       if (!message.channel_id) {
-        toast.error('Channel information not found')
+        // Get the other user (not the current user)
+        const otherUserId = message.sender_id === user?.id ? message.receiver_id : message.sender_id
+        
+        // First try to find user in the message's user field
+        let otherUser = message.user?.id === otherUserId ? message.user : undefined
+        
+        // If not found, try to find in users list
+        if (!otherUser) {
+          otherUser = users.find(u => u.id === otherUserId)
+        }
+        
+        if (!otherUser) {
+          toast.error("Could not find user information")
+          return
+        }
+
+        // Open DM dialog with this user
+        setSelectedUser(otherUser)
         return
       }
 
+      // For channel messages, proceed with channel navigation
       const channel = channels.find(c => c.id === message.channel_id)
       if (!channel) {
-        toast.error('Channel not found')
+        toast.error("Channel not found")
         return
       }
 
-      setOpen(false)
-      // Wait a bit for the dialog to close
-      await new Promise(resolve => setTimeout(resolve, 100))
       router.push(`/chat/channels/${channel.name}#message-${message.id}`)
+    } catch (error) {
+      console.error('Error handling message click:', error)
+      toast.error('Failed to navigate to message')
     } finally {
-      // Reset navigation lock after a delay
-      setTimeout(() => setIsNavigating(false), 500)
+      setIsNavigating(false)
     }
   }
 
@@ -107,92 +149,93 @@ export function SearchDialog() {
           <Search className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="w-[90vw] sm:max-w-[425px] md:max-w-[600px] lg:max-w-[700px] overflow-hidden">
+        <DialogHeader className="px-4 py-2 border-b">
           <DialogTitle>Search</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <Input
-            placeholder="Search messages and users..."
-            value={query}
-            onChange={handleQueryChange}
-            className="h-8"
-          />
-          <ScrollArea className="h-[300px]">
-            {users.length > 0 && (
-              <div className="mb-4">
-                <h4 className="mb-2 text-sm font-medium">Users</h4>
-                {users.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center gap-2 p-2 hover:bg-accent rounded-md cursor-pointer"
-                    onClick={() => handleUserClick(user)}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar_url} alt={user.username} />
-                      <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{user.username}</p>
-                      {user.full_name && (
-                        <p className="text-xs text-muted-foreground">{user.full_name}</p>
-                      )}
+        <div className="flex flex-col h-[calc(80vh-120px)]">
+          <div className="px-4 py-2">
+            <Input
+              placeholder="Search messages and users..."
+              value={query}
+              onChange={handleQueryChange}
+            />
+          </div>
+          {isSearching ? (
+            <div className="px-4 py-2 text-center">
+              <p className="text-muted-foreground">Searching...</p>
+            </div>
+          ) : (
+            <ScrollArea className="flex-1 px-4">
+              <div className="space-y-4 pr-4">
+                {messages.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Messages</h3>
+                    <div className="space-y-2">
+                      {messages.map((message) => {
+                        const isDM = !message.channel_id
+                        const otherUserId = isDM ? (message.sender_id === user?.id ? message.receiver_id : message.sender_id) : null
+                        let otherUser = isDM ? (
+                          message.user?.id === otherUserId ? message.user : users.find(u => u.id === otherUserId)
+                        ) : null
+                        const channel = !isDM ? channels.find(c => c.id === message.channel_id) : null
+                        
+                        return (
+                          <Button
+                            key={message.id}
+                            variant="ghost"
+                            className="w-full justify-start rounded-lg hover:bg-accent"
+                            onClick={() => handleMessageClick(message)}
+                          >
+                            <div className="flex flex-col items-start gap-1 text-left w-full">
+                              <div className="text-xs text-muted-foreground">
+                                {isDM ? (
+                                  <>DM with {otherUser?.username || 'Unknown User'}</>
+                                ) : (
+                                  <>#{channel?.name || 'unknown-channel'}</>
+                                )}
+                              </div>
+                              <div className="text-sm truncate w-full">{message.content}</div>
+                            </div>
+                          </Button>
+                        )
+                      })}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            {messages.length > 0 && (
-              <div>
-                <h4 className="mb-2 text-sm font-medium">Messages</h4>
-                {messages.map((message) => {
-                  const channel = channels.find(c => c.id === message.channel_id)
-                  return (
-                    <div
-                      key={message.id}
-                      className="flex items-start gap-2 p-2 hover:bg-accent rounded-md cursor-pointer"
-                      onClick={() => handleMessageClick(message)}
-                    >
-                      <Avatar className="h-8 w-8">
-                        {message.user && (
-                          <>
-                            <AvatarImage
-                              src={message.user.avatar_url}
-                              alt={message.user.username}
-                            />
-                            <AvatarFallback>
-                              {getInitials(message.user.username)}
-                            </AvatarFallback>
-                          </>
-                        )}
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium truncate">
-                            {message.user?.username}
-                          </p>
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {new Date(message.created_at).toLocaleDateString()}
-                          </span>
+                )}
+                {users.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Users</h4>
+                    <div className="space-y-2">
+                      {users.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-2 p-2 hover:bg-accent rounded-lg cursor-pointer"
+                          onClick={() => handleUserClick(user)}
+                        >
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarImage src={user.avatar_url} alt={user.username} />
+                            <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{user.username}</p>
+                            {user.full_name && (
+                              <p className="text-xs text-muted-foreground truncate">{user.full_name}</p>
+                            )}
+                          </div>
                         </div>
-                        {channel && (
-                          <p className="text-xs text-muted-foreground">
-                            in #{channel.name}
-                          </p>
-                        )}
-                        <p className="text-sm truncate">{message.content}</p>
-                      </div>
+                      ))}
                     </div>
-                  )
-                })}
+                  </div>
+                )}
+                {query && !isSearching && messages.length === 0 && users.length === 0 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    No results found
+                  </p>
+                )}
               </div>
-            )}
-            {query && !isSearching && messages.length === 0 && users.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground">
-                No results found
-              </p>
-            )}
-          </ScrollArea>
+            </ScrollArea>
+          )}
         </div>
       </DialogContent>
     </Dialog>
