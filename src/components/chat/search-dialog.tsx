@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { useDebounce } from 'use-debounce'
 import { searchApi } from '@/lib/api/search'
@@ -23,9 +23,72 @@ import { toast } from 'sonner'
 import { useChannelStore } from '@/store/channel'
 import { useUserStore } from '@/store/user'
 
+interface RawSearchResult {
+  messages: Array<{
+    id: string
+    content: string
+    created_at: string
+    edited_at?: string
+    channel_id?: string
+    sender_id: string
+    receiver_id?: string
+    sender: Array<{
+      id: string
+      username: string
+      avatar_url?: string
+      created_at: string
+    }> | null
+    reactions?: Array<{
+      id: string
+      emoji: string
+      user_id: string
+      message_id: string
+      created_at: string
+      user: Array<{
+        id: string
+        username: string
+        avatar_url?: string
+        created_at: string
+      }>
+    }>
+  }>
+  users: User[]
+}
+
+interface SearchResult {
+  messages: Array<{
+    id: string
+    content: string
+    created_at: string
+    edited_at?: string
+    channel_id?: string
+    sender_id: string
+    receiver_id?: string
+    sender: {
+      id: string
+      username: string
+      avatar_url?: string
+      created_at: string
+    } | null
+    reactions?: Array<{
+      id: string
+      emoji: string
+      user_id: string
+      message_id: string
+      created_at: string
+      user: {
+        id: string
+        username: string
+        avatar_url?: string
+        created_at: string
+      }
+    }>
+  }>
+  users: User[]
+}
+
 export function SearchDialog() {
   const router = useRouter()
-  const params = useParams()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
@@ -47,24 +110,61 @@ export function SearchDialog() {
     setIsSearching(true)
     try {
       console.log('Searching for:', searchQuery)
-      const results = await searchApi.search(searchQuery)
+      const rawResults = (await searchApi.search(searchQuery)) as RawSearchResult
+      const results: SearchResult = {
+        messages: rawResults.messages.map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          edited_at: msg.edited_at || undefined,
+          channel_id: msg.channel_id,
+          sender_id: msg.sender_id,
+          receiver_id: msg.receiver_id,
+          sender: msg.sender?.[0] || null,
+          reactions: msg.reactions?.map(r => ({
+            id: r.id,
+            emoji: r.emoji,
+            user_id: r.user_id,
+            message_id: r.message_id,
+            created_at: r.created_at,
+            user: r.user[0]
+          }))
+        })),
+        users: rawResults.users
+      }
       console.log('Search results:', results)
       
       // Transform messages to ensure they have the correct shape
       const transformedMessages = results.messages.map(msg => {
-        // Ensure sender is a single user object, not an array
-        const sender = Array.isArray(msg.sender) ? msg.sender[0] : msg.sender
-        return {
+        const message: Message = {
           id: msg.id,
           content: msg.content,
           created_at: msg.created_at,
           edited_at: msg.edited_at,
           channel_id: msg.channel_id,
           sender_id: msg.sender_id,
-          receiver_id: msg.receiver_id || undefined,
-          user: sender,
-          reactions: msg.reactions || []
-        } as Message
+          receiver_id: msg.receiver_id,
+          user: msg.sender ? {
+            id: msg.sender.id,
+            username: msg.sender.username,
+            avatar_url: msg.sender.avatar_url,
+            created_at: msg.sender.created_at
+          } : undefined,
+          reactions: msg.reactions?.map(r => ({
+            id: r.id,
+            emoji: r.emoji,
+            user_id: r.user_id,
+            message_id: r.message_id,
+            created_at: r.created_at,
+            user: {
+              id: r.user.id,
+              username: r.user.username,
+              avatar_url: r.user.avatar_url,
+              created_at: r.user.created_at
+            }
+          })) || []
+        }
+        return message
       })
 
       setMessages(transformedMessages)

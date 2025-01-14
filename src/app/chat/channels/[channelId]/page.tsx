@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation"
 import { Hash, MessageCircle, Paperclip, Send, SmilePlus, MoreHorizontal, Pencil } from "lucide-react"
-import { useCallback, useState, KeyboardEvent, useEffect, useRef } from "react"
+import { useCallback, useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -79,24 +79,20 @@ export default function ChannelPage() {
   // Initialize user polling on mount
   useEffect(() => {
     startPolling()
-  }, [startPolling])
+  }, [])
 
   // Fetch channel UUID and set as selected channel on mount
   useEffect(() => {
-    async function getChannelUuid() {
+    const getChannelUuid = async () => {
       try {
-        console.log('Fetching channel by name:', channelId)
         const channel = await channelApi.getChannelByName(channelId)
-        console.log('Channel data:', channel)
         if (!channel) {
           toast.error('Channel not found')
           router.push('/chat')
           return
         }
-        console.log('Setting channel UUID:', channel.id)
         setChannelUuid(channel.id)
-        console.log('Setting selected channel:', channel)
-        setSelectedChannel(channel) // Set this channel as selected when we enter it
+        setSelectedChannel(channel)
       } catch (error) {
         console.error('Error fetching channel:', error)
         if (error instanceof Error) {
@@ -110,33 +106,30 @@ export default function ChannelPage() {
 
     getChannelUuid()
 
-    // Clear selected channel when leaving the page
     return () => {
       setSelectedChannel(null)
     }
-  }, [channelId, router, setSelectedChannel])
+  }, [channelId])
 
-  // Add debug effect for tracking selectedChannel and currentUser
+  // Debug effect for tracking state changes
   useEffect(() => {
-    console.log('Current state:', {
-      selectedChannel,
-      currentUser,
-      channelCreatorId: selectedChannel?.creator?.id,
-      currentUserId: currentUser?.id,
-      isCreator: selectedChannel?.creator?.id === currentUser?.id
-    })
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Current state:', {
+        selectedChannel,
+        currentUser,
+        channelCreatorId: selectedChannel?.creator?.id,
+        currentUserId: currentUser?.id,
+        isCreator: selectedChannel?.creator?.id === currentUser?.id
+      })
+    }
   }, [selectedChannel, currentUser])
 
-  // Add effect to update URL when channel name changes
+  // Update URL when channel name changes
   useEffect(() => {
-    if (selectedChannel && selectedChannel.name !== channelId) {
-      console.log('Channel name changed, updating URL:', {
-        from: channelId,
-        to: selectedChannel.name
-      })
+    if (selectedChannel?.name && selectedChannel.name !== channelId) {
       router.replace(`/chat/channels/${selectedChannel.name}`)
     }
-  }, [selectedChannel, channelId, router])
+  }, [selectedChannel?.name, channelId])
 
   const fetchChannelMessages = useCallback(async () => {
     if (!channelUuid) return []
@@ -178,30 +171,28 @@ export default function ChannelPage() {
   useEffect(() => {
     const currentMessages = allMessages[channelId] || []
     lastMessageCountRef.current = currentMessages.length
-  }, [allMessages, channelId])
+  }, [channelId, allMessages])
 
+  // Set up message polling
   useEffect(() => {
-    let intervalId: NodeJS.Timeout
+    if (!channelUuid) return
 
-    if (channelUuid) {
-      // Initial fetch
-      fetchChannelMessages()
-
-      // Set up polling with error handling
-      intervalId = setInterval(async () => {
-        try {
-          await fetchChannelMessages()
-        } catch (error) {
-          console.error('Polling error:', error)
-          // Don't show toast for polling errors to avoid spam
-        }
-      }, 3000)
+    const pollMessages = async () => {
+      try {
+        await fetchChannelMessages()
+      } catch (error) {
+        console.error('Polling error:', error)
+      }
     }
 
-    return () => {
-      if (intervalId) clearInterval(intervalId)
-    }
-  }, [channelUuid, fetchChannelMessages])
+    // Initial fetch
+    pollMessages()
+
+    // Set up polling interval
+    const intervalId = setInterval(pollMessages, 3000)
+
+    return () => clearInterval(intervalId)
+  }, [channelUuid])
 
   const handleSubmit = async () => {
     if (!message.trim() || !currentUser || !channelUuid) return

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { type User } from '@/types/index'
-import { type UserState } from './store.types'
+import type { User } from '../types'
+import type { UserState } from './store.types'
 import supabase from '@/lib/supabase/client'
 import { toast } from 'sonner'
 

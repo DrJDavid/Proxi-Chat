@@ -34,7 +34,7 @@ function formatMessageContent(content: string) {
   const fileRegex = /\[File shared: ([^\]]+)\]\(([^)]+)\)/
   const fileMatch = content.match(fileRegex)
   if (fileMatch) {
-    const [, fileName, url] = fileMatch
+    const [, , url] = fileMatch
     return (
       <div className="flex items-center gap-2">
         <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -470,7 +470,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                                     handleAddReaction(message.id, emoji)
                                     setShowEmojiPicker(null)
                                   }}
-                                  onClickOutside={() => setShowEmojiPicker(null)}
+                                  onClose={() => setShowEmojiPicker(null)}
                                 />
                               </div>
                             )}
@@ -481,7 +481,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                   </div>
                   {message.reactions && message.reactions.length > 0 && (
                     <div className="flex gap-1 mt-1">
-                      {Array.from(new Set(message.reactions.map(r => r.emoji))).map((emoji) => (
+                      {Array.from(new Set(message.reactions?.map(r => r.emoji) ?? [])).map((emoji) => (
                         <Button
                           key={emoji}
                           variant="ghost"
@@ -491,7 +491,7 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                         >
                           <span className="mr-1">{emoji}</span>
                           <span className="text-xs">
-                            {message.reactions.filter(r => r.emoji === emoji).length}
+                            {message.reactions?.filter(r => r.emoji === emoji).length ?? 0}
                           </span>
                         </Button>
                       ))}

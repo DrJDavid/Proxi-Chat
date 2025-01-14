@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '../../../components/ui/button'
+import { Input } from '../../../components/ui/input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../../components/ui/card'
+import { Label } from '../../../components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs'
 import supabase from '@/lib/supabase/client'
 
 export default function RegisterPage() {
@@ -24,7 +24,7 @@ export default function RegisterPage() {
   const [verificationCode, setVerificationCode] = useState('')
   const [showVerification, setShowVerification] = useState(false)
 
-  const handleEmailRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -51,7 +51,7 @@ export default function RegisterPage() {
     }
   }
 
-  const handlePhoneRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePhoneRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -87,6 +87,10 @@ export default function RegisterPage() {
     }
   }
 
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, setter: (value: string) => void) => {
+    setter(e.target.value)
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
@@ -114,7 +118,7 @@ export default function RegisterPage() {
                   <Input
                     id="displayName"
                     value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    onChange={(e) => handleInputChange(e, setDisplayName)}
                     required
                   />
                 </div>
@@ -124,7 +128,7 @@ export default function RegisterPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleInputChange(e, setEmail)}
                     required
                   />
                 </div>
@@ -134,7 +138,7 @@ export default function RegisterPage() {
                     id="password"
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => handleInputChange(e, setPassword)}
                     required
                   />
                 </div>
@@ -172,7 +176,7 @@ export default function RegisterPage() {
                   <Input
                     id="displayNamePhone"
                     value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    onChange={(e) => handleInputChange(e, setDisplayName)}
                     required
                   />
                 </div>
@@ -183,7 +187,7 @@ export default function RegisterPage() {
                     type="tel"
                     placeholder="+1234567890"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => handleInputChange(e, setPhone)}
                     required
                     disabled={showVerification}
                   />
@@ -194,7 +198,7 @@ export default function RegisterPage() {
                     <Input
                       id="code"
                       value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
+                      onChange={(e) => handleInputChange(e, setVerificationCode)}
                       required
                     />
                   </div>

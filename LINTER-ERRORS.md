@@ -1,50 +1,55 @@
 # ProxiChat Linter Errors Documentation
 
-## TypeScript and ESLint Errors
+## Fixed Errors ✅
+
+1. Channel Page (`src/app/chat/channels/[channelId]/page.tsx`)
+   - ✅ Removed unused `KeyboardEvent` import
+
+2. Direct Message Dialog (`src/components/chat/direct-message-dialog.tsx`)
+   - ✅ Removed unused `fileName` variable
+   - ✅ Fixed reactions type error with proper null checks
+
+3. Search Dialog (`src/components/chat/search-dialog.tsx`)
+   - ✅ Removed unused `params` import and variable
+   - ✅ Fixed message transformation type error
+   - ✅ Added proper type definitions for search results
+   - ✅ Fixed array type handling for sender and reactions
+
+4. Toast Hook (`src/components/ui/use-toast.ts`)
+   - ✅ Fixed duplicate `ActionType` type declaration
+   - ✅ Properly typed action types
+
+5. Register Page (`src/app/(auth)/register/page.tsx`)
+   - ✅ Fixed UI component import paths
+   - ✅ Added proper FormEvent types for event handlers
+
+6. Store (`src/store/user.ts`)
+   - ✅ Fixed types import path
+
+7. Type Declarations (`src/types/declarations.d.ts`)
+   - ✅ Replaced `any` types with proper module declarations
+   - ✅ Added specific type exports for UI components
+   - ✅ Added proper type declarations for lib modules
+   - ✅ Fixed module exports following Next.js patterns
+   - ✅ Added proper React component and event types
+   - ✅ Added proper HTML attribute types for components
+
+## Remaining Errors 🚧
 
 ### Channel Page (`src/app/chat/channels/[channelId]/page.tsx`)
-- 🔴 Unused variable: `KeyboardEvent` is defined but never used
 - ⚠️ React Hook warning: useEffect has a complex dependency array expression
 
-### Direct Message Dialog (`src/components/chat/direct-message-dialog.tsx`)
-- 🔴 Unused variable: `fileName` is assigned but never used
+## How to Fix Remaining Issues
 
-### Search Dialog (`src/components/chat/search-dialog.tsx`)
-- 🔴 Unused variable: `params` is assigned but never used
-
-### Toast Hook (`src/components/ui/use-toast.ts`)
-- 🔴 Type-only import: `actionTypes` is assigned a value but only used as a type
-
-### Channels API (`src/lib/api/channels.ts`)
-- 🔴 Unused variable: `data` is assigned but never used
-
-### Search API (`src/lib/api/search.ts`)
-- 🔴 Unused imports: 
-  - `Message` is defined but never used
-  - `User` is defined but never used
-
-### Type Declarations (`src/types/declarations.d.ts`)
-- 🔴 ESLint errors:
-  - Unexpected `any` type used in multiple places
-  - Invalid module variable assignment (Next.js specific rule)
-
-## How to Fix
-
-1. Remove unused variables and imports:
-   ```typescript
-   // Remove or use the imported/declared variables
-   ```
-
-2. Fix React Hook dependencies:
+1. Complex useEffect Dependencies:
    - Extract complex expressions into variables
    - Review useEffect dependencies
+   - Consider using useCallback for functions in dependencies
+   - Split complex effects into smaller, focused ones
 
-3. Fix type declarations:
-   - Replace `any` with specific types
-   - Follow Next.js module declaration guidelines
-
-4. General guidelines:
-   - Use strict TypeScript types
-   - Remove unused code
-   - Follow React hooks best practices
-   - Use proper module declarations 
+## General Guidelines
+- Keep code modular
+- Use strict TypeScript types
+- Remove unused code
+- Follow React hooks best practices
+- Use proper module declarations 
