@@ -1,50 +1,67 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import supabase from '@/lib/supabase/client'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export async function GET() {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: users, error } = await supabase
       .from('users')
-      .select('id, username, avatar_url, created_at, full_name')
-      .order('username')
+      .select('*')
+      .order('created_at', { ascending: true });
 
-    if (error) throw error
+    if (error) {
+      console.error('Error fetching users:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch users' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json(users)
+    return NextResponse.json(users);
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Error in users route:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
+      { error: 'Internal server error' },
       { status: 500 }
-    )
+    );
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) throw sessionError
-    if (!session?.user) throw new Error('Not authenticated')
+    const supabase = createRouteHandlerClient({ cookies });
+    const body = await request.json();
+    const { username, email } = body;
+    
+    if (!username || !email) {
+      return NextResponse.json(
+        { error: 'Username and email are required' },
+        { status: 400 }
+      );
+    }
 
-    const body = await request.json()
-    const { username, full_name, avatar_url } = body
-
-    const { data, error } = await supabase
+    const { data: user, error } = await supabase
       .from('users')
-      .update({ username, full_name, avatar_url })
-      .eq('id', session.user.id)
+      .insert({ username, email })
       .select()
-      .single()
+      .single();
 
-    if (error) throw error
+    if (error) {
+      console.error('Error creating user:', error);
+      return NextResponse.json(
+        { error: 'Failed to create user' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json(data)
+    return NextResponse.json(user);
   } catch (error) {
-    console.error('Error updating user:', error)
+    console.error('Error in users route:', error);
     return NextResponse.json(
-      { error: 'Failed to update user' },
+      { error: 'Internal server error' },
       { status: 500 }
-    )
+    );
   }
 }

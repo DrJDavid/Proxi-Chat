@@ -4,6 +4,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import OpenAI from 'openai';
 import { getEmbeddings } from '@/lib/embeddings';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+
+interface Document {
+  content: string;
+  metadata: {
+    filename?: string;
+    chunk?: number;
+  };
+  similarity: number;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,11 +59,11 @@ export async function POST(request: NextRequest) {
 
     console.log(`Found ${documents.length} relevant documents`);
     
-    const context = documents
+    const context = (documents as Document[])
       .map(doc => `${doc.content}\n\nSource: ${doc.metadata?.filename || 'Unknown'}, Chunk: ${doc.metadata?.chunk || 'N/A'}`)
       .join('\n\n');
 
-    const messages = [
+    const messages: ChatCompletionMessageParam[] = [
       {
         role: 'system',
         content: 'You are a helpful AI assistant. Answer questions based on the provided context. If you cannot find the answer in the context, say so. Include relevant source information in your response.'
@@ -77,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       answer,
-      documents: documents.map(doc => ({
+      documents: (documents as Document[]).map(doc => ({
         content: doc.content,
         metadata: doc.metadata,
         similarity: doc.similarity

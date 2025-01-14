@@ -1,60 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
+import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { getEmbeddings } from './embeddings';
-import pdf from 'pdf-parse';
+import { Document } from 'langchain/document';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+export async function extractPdfText(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  
+  const loader = new PDFLoader(buffer);
+  const docs = await loader.load();
+  
+  return docs.map(doc => doc.pageContent).join('\n\n');
+}
 
-const splitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 200,
-});
+export async function splitIntoChunks(text: string): Promise<Document[]> {
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 500,
+    chunkOverlap: 100,
+    separators: ['\n\n', '\n', '. ', '! ', '? ', ';', ':', ' ', ''],
+  });
 
-export async function processDocument(file: File) {
-  try {
-    // Read file content
-    const buffer = await file.arrayBuffer();
-    let text: string;
+  return splitter.createDocuments([text]);
+}
 
-    if (file.type === 'application/pdf') {
-      const pdfData = await pdf(buffer);
-      text = pdfData.text;
-    } else {
-      text = await new TextDecoder().decode(buffer);
-    }
-
-    // Split text into chunks
-    const chunks = await splitter.createDocuments([text]);
-
-    // Process each chunk
-    for (const chunk of chunks) {
-      const embedding = await getEmbeddings(chunk.pageContent);
-      
-      // Store in Supabase
-      const { error } = await supabase
-        .from('documents')
-        .insert({
-          content: chunk.pageContent,
-          metadata: {
-            filename: file.name,
-            type: file.type,
-            ...chunk.metadata
-          },
-          embedding
-        });
-
-      if (error) throw error;
-    }
-
-    return {
-      success: true,
-      chunks: chunks.length
-    };
-  } catch (error) {
-    console.error('Error processing document:', error);
-    throw error;
-  }
+export function cleanText(text: string): string {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/[^\x20-\x7E]/g, '')
+    .trim();
 } 
