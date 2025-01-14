@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { channelApi } from '@/lib/api/channels'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const channels = await channelApi.getChannels()
     return NextResponse.json(channels)

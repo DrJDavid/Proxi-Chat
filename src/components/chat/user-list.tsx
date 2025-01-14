@@ -69,7 +69,10 @@ export function UserList({ users, currentUserId }: UserListProps) {
                       <DialogHeader>
                         <DialogTitle>Message {selectedUser.username}</DialogTitle>
                       </DialogHeader>
-                      <DirectMessageDialog recipient={selectedUser} />
+                      <DirectMessageDialog 
+                        recipient={selectedUser} 
+                        onClose={() => setSelectedUser(null)} 
+                      />
                     </DialogContent>
                   )}
                 </Dialog>
