@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { LogOut, Settings, Sun, Moon, Laptop, Home, Upload } from 'lucide-react'
+import { LogOut, Settings, Sun, Moon, Laptop, Home, Upload, MessageSquareText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -28,6 +28,12 @@ import { toast } from 'sonner'
 import supabase from '@/lib/supabase/client'
 import { userApi } from '@/lib/api/users'
 import { SearchDialog } from '@/components/chat/search-dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export function TopNav() {
   const router = useRouter()
@@ -241,6 +247,23 @@ export function TopNav() {
 
       <div className="flex items-center gap-2">
         <SearchDialog />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => router.push('/rag-assistant')}
+              >
+                <MessageSquareText className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Ask About Gauntlet AI
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
