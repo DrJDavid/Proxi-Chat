@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { processDocument } from '@/lib/document-processor';
