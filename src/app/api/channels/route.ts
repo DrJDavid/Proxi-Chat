@@ -1,17 +1,38 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { channelApi } from '@/lib/api/channels'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const channels = await channelApi.getChannels()
-    return NextResponse.json(channels)
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('Missing Supabase environment variables');
+      return NextResponse.json(
+        { error: 'Configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: channels, error } = await supabase
+      .from('channels')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching channels:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch channels' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(channels);
   } catch (error) {
-    console.error('Error fetching channels:', error)
+    console.error('Error in channels route:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch channels' },
+      { error: 'Internal server error' },
       { status: 500 }
-    )
+    );
   }
 }
 

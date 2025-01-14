@@ -4,8 +4,8 @@
 - [x] Documents uploaded with correct embeddings (1536 dimensions)
 - [x] Supabase vector search working
 - [x] OpenAI integration configured
-- [x] Environment variables set in Vercel
-- [x] Build passing
+- [ ] Environment variables set in Vercel (needs verification)
+- [x] Build passing locally
 
 ## Required Components
 1. RAG Query Interface
@@ -26,14 +26,20 @@
 - [x] Clean build cache
 - [x] Successful production build
 
-2. Push to GitHub
+2. Environment Variables
+- [ ] Verify NEXT_PUBLIC_SUPABASE_URL
+- [ ] Verify NEXT_PUBLIC_SUPABASE_ANON_KEY
+- [ ] Verify SUPABASE_SERVICE_ROLE_KEY
+- [ ] Verify OPENAI_API_KEY
+
+3. Push to GitHub
 ```bash
 git add .
 git commit -m "feat: prepare MVP for deployment"
 git push origin main
 ```
 
-3. Verify Deployment
+4. Verify Deployment
 - [ ] Test RAG queries on production
 - [ ] Check error handling
 - [ ] Monitor response times
