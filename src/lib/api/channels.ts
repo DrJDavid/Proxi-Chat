@@ -318,19 +318,13 @@ export const channelApi = {
     if (sessionError) throw sessionError
     if (!session?.user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    const { count } = await supabase
       .from('channel_members')
-      .select('*')
+      .select('*', { count: 'exact', head: true })
       .eq('channel_id', channelId)
       .eq('user_id', session.user.id)
-      .single()
 
-    if (error) {
-      if (error.code === 'PGRST116') return false // Not found
-      throw error
-    }
-
-    return true
+    return count !== null && count > 0
   },
 
   async editChannel(channelId: string, updates: { name?: string; description?: string }) {

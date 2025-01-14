@@ -30,18 +30,41 @@ declare module '@/components/ui/input' {
 
 declare module '@/components/ui/label' {
   import { LabelHTMLAttributes } from 'react'
-  export interface LabelProps extends LabelHTMLAttributes<HTMLLabelElement> {}
+  export interface LabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
+    required?: boolean
+    error?: boolean
+    size?: 'default' | 'sm' | 'lg'
+  }
   export const Label: React.FC<LabelProps>
 }
 
 declare module '@/components/ui/card' {
   import { HTMLAttributes } from 'react'
-  export interface CardProps extends HTMLAttributes<HTMLDivElement> {}
-  export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
-  export interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {}
-  export interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {}
-  export interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {}
-  export interface CardContentProps extends HTMLAttributes<HTMLDivElement> {}
+  
+  export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+    variant?: 'default' | 'secondary' | 'ghost'
+    bordered?: boolean
+  }
+  
+  export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
+    spacing?: 'default' | 'compact'
+  }
+  
+  export interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
+    align?: 'left' | 'center' | 'right'
+  }
+  
+  export interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
+    size?: 'default' | 'lg' | 'sm'
+  }
+  
+  export interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {
+    truncate?: boolean
+  }
+  
+  export interface CardContentProps extends HTMLAttributes<HTMLDivElement> {
+    padding?: 'default' | 'none'
+  }
 
   export const Card: React.FC<CardProps>
   export const CardHeader: React.FC<CardHeaderProps>
@@ -61,7 +84,10 @@ declare module '@/components/ui/tabs' {
   export interface TabsContentProps extends HTMLAttributes<HTMLDivElement> {
     value: string
   }
-  export interface TabsListProps extends HTMLAttributes<HTMLDivElement> {}
+  export interface TabsListProps extends HTMLAttributes<HTMLDivElement> {
+    variant?: 'default' | 'outline'
+    orientation?: 'horizontal' | 'vertical'
+  }
   export interface TabsTriggerProps extends HTMLAttributes<HTMLButtonElement> {
     value: string
   }

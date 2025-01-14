@@ -1,8 +1,13 @@
 import supabase from '@/lib/supabase/client'
-import { type Message, type User } from '@/types'
+import type { Message, User } from '@/types'
+
+interface SearchResults {
+  messages: Message[]
+  users: User[]
+}
 
 export const searchApi = {
-  async search(query: string) {
+  async search(query: string): Promise<SearchResults> {
     // Return empty results for empty queries
     if (!query || query.trim().length < 2) {
       return { messages: [], users: [] }
@@ -71,7 +76,13 @@ export const searchApi = {
 
       // Transform messages to match our expected format
       const transformedMessages = messages?.map(msg => ({
-        ...msg,
+        id: msg.id,
+        content: msg.content,
+        sender_id: msg.sender_id,
+        channel_id: msg.channel_id,
+        receiver_id: msg.receiver_id,
+        created_at: msg.created_at,
+        edited_at: msg.edited_at,
         user: msg.sender,
         reactions: msg.reactions || []
       })) || []
@@ -79,7 +90,7 @@ export const searchApi = {
       console.log('Transformed messages:', transformedMessages)
 
       return {
-        messages: transformedMessages,
+        messages: transformedMessages as unknown as Message[],
         users: users || []
       }
     } catch (error) {

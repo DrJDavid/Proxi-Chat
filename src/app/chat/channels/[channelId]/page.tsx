@@ -71,15 +71,18 @@ export default function ChannelPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  // Track current channel messages
+  const currentChannelMessages = allMessages[channelId]
+
   // Scroll to bottom on initial load and when messages change
   useEffect(() => {
     scrollToBottom()
-  }, [allMessages[channelId]])
+  }, [currentChannelMessages])
 
   // Initialize user polling on mount
   useEffect(() => {
     startPolling()
-  }, [])
+  }, [startPolling])
 
   // Fetch channel UUID and set as selected channel on mount
   useEffect(() => {
@@ -109,7 +112,7 @@ export default function ChannelPage() {
     return () => {
       setSelectedChannel(null)
     }
-  }, [channelId])
+  }, [channelId, router, setSelectedChannel])
 
   // Debug effect for tracking state changes
   useEffect(() => {
@@ -129,7 +132,7 @@ export default function ChannelPage() {
     if (selectedChannel?.name && selectedChannel.name !== channelId) {
       router.replace(`/chat/channels/${selectedChannel.name}`)
     }
-  }, [selectedChannel?.name, channelId])
+  }, [selectedChannel?.name, channelId, router])
 
   const fetchChannelMessages = useCallback(async () => {
     if (!channelUuid) return []
@@ -192,7 +195,7 @@ export default function ChannelPage() {
     const intervalId = setInterval(pollMessages, 3000)
 
     return () => clearInterval(intervalId)
-  }, [channelUuid])
+  }, [channelUuid, fetchChannelMessages])
 
   const handleSubmit = async () => {
     if (!message.trim() || !currentUser || !channelUuid) return
