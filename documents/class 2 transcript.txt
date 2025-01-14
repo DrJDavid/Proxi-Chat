@@ -1,0 +1,757 @@
+Awesome.
+Alright before we kick off just a couple of housekeeping items to go over and then I'll pass it over to Ash and Aaron this week. Obviously, we're getting into the more
+AI product features side of AI, which is super exciting, super interesting we'll be building on top of the applications that you built last week. But before we get going, just a couple of housekeeping items first, st brain lifts when you are. So we shared an example. Template.
+of, you know. Here's an example of a brain lift. Let me see if I can bring it up.
+it's not in this workflow account. The way that we shared that was a direct link to a brain lift on brain lifts, and it includes an example. Those examples are live linked. That means if you copy those
+you know, if you copy the text and it says, add to account or mirror. If you add it to your account, or mirror it that way and then make changes.
+you're changing the master file for everybody. So the folks who built that, you know they're kind enough to share a link with all of us, and a handful of people have inadvertently mirrored it, or added it to their account. And you're actually making changes to the master version workflow doesn't have a way to lock that down. So please be very, very, you know, copy and paste it into a new thing or create a new template. Because I've gotten a couple of emails from people who are
+trying to do actual work being like, hey? Why are you guys deleting all of the stuff that I'm doing?
+Get out of my account? And I'm like, Oh, shoot! That's definitely wasn't the intent. So we apologize for that. But and I know know that a few of you have mentioned like
+when you submit a second brain or a brain lift, it feels like
+it's the wrong link. No, you guys are actually editing on top of each other, because you're all editing the original document.
+the second thing is, aws.
+we are all using the same aws account. So a couple of things that happened over the weekend first.st If you have, and we'll
+go into a lot of depth and detail on this. Aws will give you keys.
+Those are called keys for a reason. If you put those keys in publicly accessible parts of your repo that you then deploy to the cloud. Everybody who is scanning. Github can see those, and hackers and
+random people do have crawlers running that will instantly pull those keys out, spin up a bunch of instances, try to mine Bitcoin with them, so your keys are only valuable if you're not throwing them out on the welcome mat for everybody, so be very, very careful with the keys. We had to revoke a few keys, and we'll get a lot better at security as time goes along.
+But if yeah, if you see a bunch of giant instances spun up, and at 100 mining crypto?
+hopefully, that's not any of us. But yeah, they did not read the gauntlet handbook, so make sure that your keys are very well protected, and we'll we'll talk more about how to do that. Another thing is because we're all sharing an aws account.
+if you happen to pop in there and see somebody else running something and turn off their servers. Yeah, you can turn off
+other students servers, you can break stuff for other people. So be cautious to be considerate of that, just because you see, something in aws doesn't mean it's something that you spun up. We're all those are a couple instances of where we're all in shared space.
+So we'll we'll we'll obviously learn a lot more about that and be a lot more careful. And we'll help you out along the way is a classic beginner error to make, and we should have covered it in more depth. But
+Know that if you, if you have your keys anywhere in your repository, and you deploy that to a public github that is the technical equivalent of throwing your keys out on the lawn at a football game with the address attached to them. Someone's going to break in. So
+with those 2 things. Please be cautious and considerate of workflowy. Use
+copy and paste it to literally a new workflowy Doc, before you do anything. If it's something that's a shared example. I am trying to remove the example with one that's been cloned already. So we're not accidentally writing over the work of people who are trying to go about their day to day jobs. But if you have added it in the past. It will just be on your sidebar, and I can't go through and delete that for you. So be
+be aware of that, and I'll send you all a new link that we can use. That won't be attached to any
+real work that said you can. Still, you know, if you make changes directly to that, it will make changes for all of the gauntlet AI students. So
+that's a couple pieces of housekeeping. We're still going through all the assignments, especially those of you that submitted at 3 Am. This morning. We haven't gotten to those yet. But we'll reach out and give some feedback here shortly, and we'll we'll go from there. So with that I'm going to turn the time back over to Aaron and Ash.
+Aaron Gallant
+Aaron Gallant
+00:06:05
+Great ash. Do you have anything.
+Ash Tilawat
+Ash Tilawat
+00:06:08
+No, I don't have anything. I just wanted to remind everybody about the Aws workshop on Thursday.
+Originally I had said it was not mandatory. But now I am saying it is mandatory.
+Please attend the Aws workshop.
+the hiring partners. Everyone is seeing all your keys all over the Internet, and that's not a good look. We need to make sure that our practices are industry grade, and we will resolve all of this on Thursday at the workshop. So I just wanna make sure that I you know, recant what I said last week.
+I will see you guys on Thursday.
+Aaron, all over to you, and please go to the slack thread. If you have any questions for class
+me and Aaron tend not to keep up with the zoom thread, and that's it.
+Aaron Gallant
+Aaron Gallant
+00:06:54
+Alright. So onwards. Let me get my desktop up.
+Are we seeing slides like we are?
+So today, what we're gonna be digging into you. You spent a week working
+on an app using Llm tools using AI using these things. But the app itself is a chat app.
+we'd like to add, as we've discussed
+a sort of avatar and an autonomous representative for the users of this app, and one of the key components of that is going to be a technique called Rag. So that's what we're gonna discuss today. Rag is something that will be useful.
+I won't say necessarily in literally every project, but it will be useful a lot of the time. There are a lot of projects and a lot of things you'll do with that
+could potentially be relevant because it's a pretty
+powerful technique, even though it's actually not that complicated it's it's almost like a really clever one.
+So Rag stands for retrieval, augment regeneration.
+and we'll see this in the slides and the code and the examples and everything. And I might move kind of fast in the slides after I finish getting this prologue.
+Because alright! But I'll check my audio settings. Here are they?
+Check right before. But
+How you're all seeing them.
+Austen Allred
+Austen Allred
+00:08:31
+Yeah, I think it's a mic thing. It's an Aaron likes to use Linux thing.
+Aaron Gallant
+Aaron Gallant
+00:08:35
+Well, is this a little better, or is this different.
+Austen Allred
+Austen Allred
+00:08:39
+It's better than last time. It's still a little quiet.
+Aaron Gallant
+Aaron Gallant
+00:08:42
+Alright. Yeah. I turned. I turned this level up to the highest it could be. But
+I just switch to a plug mic. I just have enough stuff on my desk, but it's nice to have flexibility.
+anyway. Retrieval augmented generation. I'll just make sure to also talk louder
+gives us basically the ability to
+augment the context window with relevant information. And this will give us better answers. This will potentially reduce hallucinations. If you're worried about fact, approval, that sort of thing, because fundamentally
+large language models do not solve information, retrieval do not solve the search problem. That's not really what they do
+they generate the most likely next token. And it's kind of a weird, emergent property of them that this seems like you're interacting with an information
+retrieval things sometimes, but that's not really what they do, and that's why we experience hallucinations and all that, because they're just going to the next, most likely tokens rag is not a cure for hallucinations. There, arguably, isn't really one at least completely other than you know. Human review. Because humans define what these things are, in the 1st place.
+but they have.
+So as I was saying also, I might move a little quickly through the slides, because I want to get to the code, and we have so much time. But you have all this for your reference.
+So your learning objectives to understand rag embeddings and vector databases which are the core components of rag.
+And then how similarity search is, how we retrieve
+from those databases, and then how to connect to an Llm, and then a few somewhat more sophisticated techniques. Where you can combine things to
+potentially have richer results.
+So
+Rag, I already defined basically retrieval augmented generation. But what this means for this to be relevant. And this is why it's not relevant all the time. But you have to have a set of documents. I'll typically use the word corpus, because really, I was just saying, like, Rag doesn't solve the search problem doesn't solve the information retrieval problem.
+giving it. So not rag Llms rag is giving it a search, basically giving it the ability to search and retrieve information and combining that with what the Llm. Does so. But to search, you need a corpus. You need a group of documents that you care about that are relevant, and, you know, correct or factual or or somehow important to what you're doing.
+And then the rad technique makes it easy for and this is basically transparent to the user. You know, as the user is interacting with the Llm. The Llm. Will also automatically retrieve relevant documents and add those documents into the conversation or into its input at least
+and use that to inform its response. So again, very useful. If if you played with tools like perplexity or if you
+looked at.
+I might be able to pull out a a wired headphone if that would really make a difference.
+Austen Allred
+Austen Allred
+00:12:13
+Yeah, let's give it a shot. It's worth trying. If it fixes it great. If not, we'll keep going.
+Aaron Gallant
+Aaron Gallant
+00:12:21
+One second.
+Austen Allred
+Austen Allred
+00:12:38
+Sorry to put you on the spot there, Aaron. Generally we avoid.
+Aaron Gallant
+Aaron Gallant
+00:12:40
+Actually, I mean, how's how's this? Mic? It's probably low quality. But is it loud enough.
+Austen Allred
+Austen Allred
+00:12:46
+10, x better.
+ajbeckner
+ajbeckner
+00:12:47
+Okay.
+Better.
+Aaron Gallant
+Aaron Gallant
+00:12:48
+Then we'll stick with this. You might hear a little bit of ambient noise, because this is my my laptop mic. I am in a separate room, but if you hear a cat or a person they're out there
+alright! So
+anyway, where were we? We were talking about how Rag provides information. Retrieval provides search to Llm. At least, that's that's an initial way to think about it. I'd say, how is this potentially relevant to the project you're working on. Well, in this case the natural corpus, if you wanted to make an avatar, would be the chats of that person right the chats that person has sent
+and potentially, it might not be a bad idea to also have the avatar be able to search and read the rest of the slack, too, right? But you'd want to be able to just, or the the chat instance because you'd want it to be able to have information from other places to inform its responses like it reads, this, reads the chats, basically, or can read the chats.
+So but we'll I'll focus on, of course, the actual just techniques here. And you'll have to think more about applying it to your projects.
+So basic walkthrough of rag.
+What rag has you have your knowledge, base
+or corpus, as I've been saying, and
+these documents have to be, as we'll see, chunked, which means made into smaller pieces and then vectorized. And those vectors are what you actually search through.
+And a vector is just a bunch of numbers in this context. And that means there's all sorts of numerical distance metrics we can use to retrieve the relevant documents, and those relevant documents will be added to the query that goes to the Llm. So the user query goes in 1st and the user query both retrieves the documents. Basically, you know, we find documents. And by the way there's there's other things you can do here. This is the simplest setup.
+But for now we're just saying, Hey, find documents that also look like what the user is talking about, because hopefully, that's relevant.
+And then add those documents to the query
+of the user in a template that says, Hey, Llm, this is the user question. Here's some information you should use while you're answering the question. And then the Llm. Answers the question.
+And again, it's not actually that complicated, but it's
+it can have pretty good results. It can really help increase the confidence in what you're getting out from this. And also again, this is all very new stuff, and there are more sophisticated things you can do for some of this. You can be more sophisticated, for instance, how you decide to query the database which we'll talk about a little bit in future, I believe
+so. The pieces of a rag. The retriever. This is basically how we're searching
+the knowledge base, which is the set of documents and the Llm. Which is the Llm. It's making the next token. And this means that we're focusing on what the Llm. Is actually good at language, manipulation and understanding and generation. But for information that matters, we're getting it
+you know elsewhere. And again, it's not a guarantee. There are no hallucinations. It is possible, because Llms are probabilistic, to feed them right in their prompt like a document with information, and nonetheless, the output of the Llm. Will somehow
+be wrong, right like that. That is not
+something that that this prevents. But I would argue that it it significantly reduces the probability of it. Because when you have those facts right in the prompt, and you're telling the Llm. Hey, this is true.
+and you should use this while you're responding. The vast majority of Llms. The vast majority of the time will will respect that. I would say.
+all right.
+this is for you visual learners. I'm not gonna spend as much time on this slide. It's it's stuff. It's stuff we're talking about. But
+with more of a graph. I think so. Oh, well, there's 1 other step here that I haven't talked about too much the embedding model
+so I will spend some time on this slide. The embedding model is what converts the text to numbers. So the vectors right? And
+we'll see and talk a little bit more about it, for now it's okay to kind of think of it like a black box. And Openai offers some very capable general purpose embedding models.
+but when I say numbers, it's literally like giving you 3,072 numbers. And those numbers represent the text in semantic space which really just means they represent what it means. Kind of
+yeah, it's things like word to vet we're not specifically using word to vet right now, but it's it's if you're familiar with word to vet. You know what I'm talking about here when I say embeddings
+so, and of course those chunks of documents in the vector store have to be embedded as well and embedded. The important thing about embeddings from a practical perspective, because this will be a gotcha when you're actually working with it. You gotta always use the same embedding model with the same number of dimensions like for that for your application if you were to if you wanted to switch it. That would require essentially a migration.
+And you know, converting all your old documents, because.
+if you have your corpus and you split it up. And you you make its vectors and you store it in the vector store.
+And you do that with a certain model, then you? The query has to use the same embedding model. So its numbers are basically the same shape, the same number of dimensions generated the same way, and
+to be consistent about the embedding model and the number of dimensions you use. It's pretty easy with opening
+alright. So text searchable inside vector databases.
+So this is another. This is a you could think of it as a 2D projection, because actually, embeddings are, as I said, I mean, the open AI ones are really big these days. I remember embeddings that were more like 2 56, 5, 12 numbers, but you get 3,072 numbers, which means a 3,072. Dimensional space is what you're representing, which
+the human mind can't really think about. But if you think of. It is in 2 dimensions that these documents have 2 numbers, and all the documents have 2 numbers X and Y, and these documents. The numbers are closer to each other than these, and that means that these documents are kind of similar right? And so if a user search was here, you'd give them like these documents in the context window, because it'd be kind of similar. But if the user search was over here, you'd put this document in the context window.
+And
+how do these numbers do that? If we have time at the end, I'll I'll give a little bit of a
+a brief version of it. But essentially, it uses another neural network type architecture.
+That makes these numbers.
+you know, they're not understandable to us. They when I say they have meaning. If you look at them, you're just gonna see numbers. But for the space that they're in they represent, they behave in this way.
+I'm gonna check the question. Thread here
+is rag always implemented with vector, search. I mean, always is a strong word. But pretty much, certainly, as we're talking about it. You know, when we're talking about rag we're talking about.
+you know, retrieving relevant text snippets. And usually that's going to involve something like this. Technically, you could use any information. Retrieval mechanism you want
+and
+indeed, like perplexity, or some of the search engines that kind of do rag on the Internet are doing more than just vectorizing everything they're probably doing like a page rank type thing as well to find the relevant pages first, st and then they're finding the relevant chunks from that page or something like that. So there could be other pieces to rag. But you will. Very typically, you kind of have to have vectors, because that's also how you determine that the query, you know what? What snippets are relevant, based on the user? Query.
+but yeah, I mean, other other search solutions could work, though, certainly. But you'll you'll typically see. Vector.
+and it looks like the other things are already addressed. Yes, 3 blue one. Brown can provide good intuition here if you care about the maths.
+Alright so a little bit about chunking, and I'm also gonna acknowledge chunking is complicated. It's 1 of those like operational details that you can actually can really matter. And you might spend a lot of time on an implementation.
+So I'm just going to sort of define and overview it here. But you might have to dig deeper at a high level. Trunking is just how you split up the text. And the reason you do this is, if you're feeding arbitrary length text
+that's not good. Often, I mean you. These days. You might not hit a hard limit for a while, because the models support such enormous input. But it might still be in your interest to split up the chunks somewhat, because those chunks are what you're retrieving.
+that you put in the context window as well. And you know smaller focus chunks that that individually capture the meaning are what you're aiming for. And so you know, the most naive thing you can do. Is just literally cut every say
+so many characters right? And if you only, if you just cut every so many characters, which I think is what this picture might be doing, you'll see you literally cut up words right like different. The D is in one chunk, and the if rent is in the rest of it, and that's
+not ideal.
+That's going to mangle the language and really hurt your system.
+There's other sorts of chunking strategies. So there's a recursive chunker that is a good sort of baseline, because it basically observes grammar a bit more, and we'll figure out how to split things a little bit more gracefully. So your trunks won't all be the same size like you lose that guarantee, but your chunks won't be split as
+poorly, and then it's sort of a continuum of trade-offs, the most sophisticated chunking, or one of the most sophisticated chunking you can do is called semantic chunking, where you literally actually use language models to understand. Hey? What is, you know the meaning of this
+text, and how can we split based on that? You know what you you're sort of like, essentially doing very similar math to calculating the embeddings as you're splitting. And you're saying, Okay, this paragraph has certain meaning. So we split this off as its own thing. And then this sentence stands alone, and whatever right? And
+that's the most expensive to run. So it's certainly more expensive than a lot of the other techniques and not always worth it. But you can look into semantic chunking. And then the other thing that I remind for chunking. And again, I'll highlight this in particular for the project you're working on.
+If your corpus has some structure to it already, which yours likely does, because it's chat messages. But really it's probably like Jason, objects that are, you know, with with from certain users. And you know, most people, you might have a Max text message length, and people don't send super long text messages. Usually they send a series of them. If they have a lot to say. So long story short, you could start by maybe just chunking on text message
+inside your chat app like that could be your chunk, be it via message right? And that's
+probably pretty good.
+And similarly, if you are worried about code
+like, let's say you're making an editor like cursor while Code has a structure, and that structure informs you how to take chunks of it and include those chunks in your prompts. And indeed.
+this sort of thing automatically chunking. And your, you know, pieces of your code base and sending it along with your queries is most likely generally something cursor is doing in the background. And these these tools use these sorts of techniques to augment the context window and to improve the quality of the responses.
+So visualization of vector databases in slightly more dimensions. And you can see these.
+Austen Allred
+Austen Allred
+00:25:59
+Real quick. Do you want to mute your slack notifications? That's the only thing we can hear, but it's.
+Aaron Gallant
+Aaron Gallant
+00:26:05
+Yeah, I I yeah, I forgot that. I'm not.
+Austen Allred
+Austen Allred
+00:26:07
+I mean, that's why we yeah, that's that's our fault for making you switch mics ad hoc. But.
+Aaron Gallant
+Aaron Gallant
+00:26:12
+Almost never. Where is the new button on slack
+can I just ignore.
+Adam Weil
+Adam Weil
+00:26:21
+I think it's just pause notifications.
+Aaron Gallant
+Aaron Gallant
+00:26:23
+Pause notifications for a couple of hours. There we go. Alright. Yeah, that makes sense
+giving everybody a little bit of the slack
+that that response we all get when we hear that click, click.
+All right. So here we're seeing these concepts, these carnivorous mammals versus. These fruits are clearly separate.
+And
+again, we're representing these as documents in semantic space. And the vector database is just what stores it. So it should store basically both the numbers that tell you where this.is and the document itself that's going to be retrieved, which in our case is going to be the chunks, the snippets of things in our corpus that we care about.
+Vector databases. There's a lot of them out there. We're gonna demo with pinecone. Which I believe also has an Aws version. But I will defer to future sessions on more specific advice there.
+But there's a lot of vector databases out there. And vector. Databases can scale pretty well, because, you know, it's not like a traditional database. And you know it. It's not. It's not a traditional sequel. Database is trying to guarantee certain foreign key relationships and things like that. It's just a pile of documents, right?
+And so you can often do horizontal scaling if you really need to that kind of thing.
+Alright similarity in vector space. We've kind of talked about this. So I'll just emphasize what the slide is showing, which is
+when when I say, vector vector really sort of means direction. So here we saw numbers. Sorry we saw points. But you can also think of the vector as the arrow from the origin, which is 0 0 all zeros through that point, right? And so it's a multi dimensional line going out from 0 through that point.
+And when you have lines you can calculate angles between them. If you have multiple lines. And that's what cosine similarity is. It's calculating the angle between these different vectors represented as lines out from the origin, and if the angle is small, that means the points are closer together.
+And this is, there are a lot of other distance metrics you can come up with basically almost any way to manipulate the numbers, to give you a new number from 0 to one. Usually
+where you know
+0 is, they're close together and one is, they're far apart. Something like that. That's what distance metrics look like. And and like all these other things we've been talking about, you might end up reading and doing a lot more with them. But cosine similarity is a good starting point, especially for this application. It can be fairly robust to
+the sparsity of you know the many dimensions. And at the same time it's it's reasonably performant. It's not like
+ridiculously slow, or anything like that. So cosine similarity is is a good distance metric. And it's giving us these numbers that that actually quantify rather than us just eyeballing like, oh, these these dots are close together. We're getting a number here. And this number says, Okay, these are the documents that are close together.
+And how do we use that? Well.
+another. And this, by the way, is.
+and you could call it a hyper parameter almost. It's not really but a setting. This is a little bit of a choice, you return up to N of them or K, as this slide says, so you have your query which lands here because you vectorize that too.
+And then you use the distance metric to identify the most similar documents. And here they are. And in this case we've decided, okay, we're going to put the 3 most similar documents in the prompt to the Llm. Why? 3. Because there's not necessarily a grand reason there, and if you care, you'd have to run experiments and and try to see what the best setting is for your use case, because it's not going to be a universal answer.
+It'll depend, probably, on how big your trunks are, as well as how, how, what your problem is solving.
+Alright. So that's it, for, like the basics of rag let's hit really quick some of the other things you can do with Rag, and then the rest of our time we'll be looking at Code. Get through as much of that as we can. But you do have the repo if we don't get through all of the code.
+So understanding rag fusion, so rag fusion is, you know, let's say we have our user. And
+they are asking questions the way a user does right? But let's let. And instead of a chat app. Let's think. Let's say we built a rag on top of our corporate. Help center articles. You know, we work. We work somewhere. It has a help center. And we want to make a help center robot that helps people.
+And
+we find that well, it doesn't work as well as we thought, and well may it! It doesn't always find the right documents. Well, why is that? Well, the users are speaking like users, right? They're asking questions, using their language
+and what they know, and the Corpus, the Help Center articles are written by technical experts or domain experts or
+technical writers or people with opinions and background specific to these things. And they're using different language.
+And they're writing things differently. And so, even though everybody's writing and trying to talk about the same things. If you use radically different language, or even not radically, just significantly different language to discuss it, you might find that. Well, those vectors aren't as similar as you'd think. And so the retrieved documents become a little bit more of a mishmash.
+And so what Rag Fusion says is rag fusion says, well, let's have usually an Llm prompt that we feed the user query to
+right? And we say, Hey, llm, this is what the user wants.
+Rewrite this into, you know, like, give me 3 or 4 different versions of this query.
+written in a certain way, right like written for searching our help center right or written for searching the Internet, you know. Optimize this query
+like an expert to make it representative and to make it similar to the dot. Whatever you can do. Some prompt engineering but the general idea being that, hey? The users query it. It sure it means what they want, but it's not written the way that is the most effective. And the way something is written, the literal word choice matters a lot in this situation. So.
+and of course, we can generate multiple and part of the value there is. Then we can run all of these right? So we're going to query the vector database multiple times. We'll query it with the users. Query to, you know, we're not going to always say the user doesn't know what they're doing. So we throw that one in there.
+and we also query with our rewritten ones based on the Llm's prompt.
+And then all of these queries give their own response, and we combine it with an approach called reciprocal reciprocal rank fusion, which
+in a nutshell, because I think that's the time we'll have for it right now, it basically means if a document shows up
+multiple times, it's more relevant. Right? So if the same result from the vector database
+shows up in all 5 queries. You're pretty sure that that's an important document. Because it was it was really, it was similar to the user's original query was similar to all the rewritten queries. That is a similar document, right? And if something only shows up to one of the queries well, I mean depending how many documents you're taking, there's still some relevance there, but it's it's definitely way, less relevant.
+Right?
+So you combine all the rankings and you use the re-rank results to retrieve the top K, and put that in your prompt and get your response. So rag fusion
+can be very useful in in these sorts of situations, where you find that the user is just not writing the way that the corpus is written probably not super relevant to chat genius to be honest because your corpus is chats and users write chats, so
+you'll I mean you could still try it. You still might get some value out of it. But I would, I would. I would think that it would be less critical. But it's still a very good technique to know about
+so checking the slack, since I no longer get the ticky ticks
+lot of slack going on. But it looks like questions are being handled.
+Okay?
+So we got to the code.
+Alright. So we're here in the repo.
+and I'm going to talk through the upload and then run the main
+I'm not running the upload because it might take a little while. And I already I already one of those cooking shows. I pre baked it. I have
+have the vector database ready to go for it. So I'll just show it. But the upload is certainly important. So upload
+upload is run. I mean, once or basically, whenever you are setting up your vector database. And what upload does is it loads documents, chunks them, calculates, vectors and stores all of it. And I should frame the problem we're solving here the Corpus
+we have all these Pdfs of Berkshire, Hathaway.
+Like annual statements, or whatever he calls those documents.
+And as you can see, these are kind of funky, right? These are messy. And anybody who's tried to programmatically process Pdfs knows it can be painful
+definitely. Looks like this is typeset with some sort of latex. So that's cool.
+But maybe not. But kind of looks like it
+the the justification, anyway.
+so a lot going on here. And you know these are long documents, many, many pages, and over 20 or 20 documents, and a lot of financial wisdom here. So you could see. This is a relevant corpus for a financial advisor, Bot, or something like that, or at least a Berkshire Hathaway history bot! It would be able to answer questions factually using these documents.
+And I'm not gonna run over all the files here. A lot of this is
+what I would call boilerplate, you know the sort of stuff you need to install or run things it's the dot pi files upload dot pi is what sets up the vector database. And it's and
+I should note for people if people are still hitting the end dot sample thing so, or the end thing. This
+is the dot env file, and what you should be doing to set this up is copying it.
+And I'm not. I already have a.in, so I'm gonna call it, dot inv. 2.
+But and then when you have your.in 2, you can put in your things here.
+And, by the way, just like Austin said at the beginning, about you know the Aws keys being keys being secrets. These, as they say here, are also secrets. Api keys are secrets generally, I mean, certainly these ones are. They will give authorization to
+to do things like run Llms, so
+and what this will give us is the ability to connect, to open AI
+to send prompts and receive responses. It will connect to Lane Smith, which is made by Lane chain.
+and we'll look a little bit at that today and more in future. But basically, it's an observation platform that lets you see traces of everything you do with Llms. And that's
+just like observation platforms are useful, you know, logs and monitoring for regular developments, very useful for Llm development.
+And then this specifies how to connect a pine cone, and what your indexes are.
+So while I'm talking setup, I'll just show a little bit about pine cone
+when you log into pine cone. You should see something like this. And you're gonna want 2 indexes. And you can do that by clicking, create index.
+And maybe that's
+I'm not gonna actually make it because I already have it. The 1st index is large is 3,072 dimensions.
+You can potentially, if you just click this, I think it'll set it correctly, whereas, yeah. So this is the model we're using text embedding large. And then the other example uses text embedding small, which is 1536. So you can. Literally, they added this recently. But you can just click the model type you're using, and we'll set up the dimensions and the metric that this needs to match the model.
+And then the rest of this you probably need to just stick with defaults
+if you're on a starter plan, and that's fine, and then you create it.
+And then you literally get this name is what whatever you name. It is what you should set it here.
+The Api key should be somewhere in there. So
+back to the code. What does upload actually do? Well, it's a pretty simple file
+we're getting a lot of magic here from Lane chain. So, in addition to providing
+the Lang Smith observation platform, which you see as a tab over here they have a library. Well, kind of a framework, a bunch of libraries so we're actually gonna connect to Openai, using the lane chains Api, which is a which will basically make it even simpler, and they provide a text splitter. The one I mentioned that we're using the recursive character text splitter, which is a good baseline text splitter if you don't know what else to pick
+and then they also provide a way to connect to pine cone as a vector store. And they also provide a way to parse Pdfs. So a lot of stuff from now, this is actually from the community. So this is open source, and you can look at it and contribute to it, I believe.
+And then, we are going to just load the.in file. Get all these those keys and stuff we need.
+Glob, get all the the Pdfs.
+And then just pass them to the things we imported. So it's pretty straightforward now, of course.
+actually writing this for the 1st time, would take a little longer in terms of reading documentation, but you should also be asking your Llms to write and understand things
+so we have the recursive character text splitter, and that is, we have to specify the chunk size and the overlap. The overlap is the number of tokens that the 2 that the chunks can share. And you typically want a bit of an overlap to avoid just missing stuff or having really weird cuts.
+And then we take all those documents and literally, one line, just pine cone vector store from documents. We give it the documents.
+We give it the embedding model which we instantiated line above, and we give it the index name to store it in.
+So if you run this, what you will get is something like this.
+So I stored it in an index called Rad Fusion 30, 72, and you'll see. Hey? Here's these numbers, and there's 3,072 of them. We can only see some of them, but they're just floats
+representing it out in space. And here's the actual text
+and even share. It saves a little bit of other metadata. It saves the document that it came from, and it saves the page it was found on
+and we can actually even basically interact with this. Here, we can search and and see.
+I mean, right now, it has some default. Search populated is giving us the top 10 that are similar to this vector for some reason.
+But you can experiment with this sort of admin cloud view of things. This is the vector database.
+And any other vector database would basically look similar to this.
+So once we have that we can run the main and main just asks a question.
+So same setup connection stuff. How has Berkshire Hathaway's investment in Coca-cola grown? Then we have to use the same embeddings model
+and connect to the same vector store. But again, we'd already set up the vector store in the other. So that is a 1 off. We only need to run upload once
+or potentially. If you're adding documents, you'd want to have some incremental upload. But this the main dot pi is like search and search would have to be or ask query would have to be run every time there's a query
+we make our retriever we retrieve, based on the prompt
+Which will automatically embed the prompt and retrieve relevant documents. And we'll see that we're gonna print new relevant documents. Let me also just
+get this running. But this one runs pretty quick.
+you know. It's in my history. I'll just hit up until I see it.
+There we go so
+alright. So these are the relevant documents being printed to the query. And the query, by the way, was.
+How is Berkshire Hathaway's investment in Coca-cola grown? Berkshire Hathaway? Is somewhat known for you know, having Coca-cola investment for a long time. And
+we see Berkshire, Hathaway, we see these documents where Coca-cola was mentioned, and these are not these are these documents are chunks of the original full Pdf. Documents.
+and then these 1, 2, 3, 4 of them, I guess.
+are fed into the Llm. And this is what the Llm. Actually said. Berkshire. Hathaway's investment in Coca-cola has experienced significant growth since its initial purchase in the nineties. Here's some key points. Blah blah, the invest, you know, purchase in August 94, the investment, 1.3 billion dollars for 400 million shares. All this other. All this information 8.9 to 9.1. And the reason I'm highlighting this is, there's a lot of specific numeric information that
+you'd often be suspicious of hallucinations with an Llm. For this level of specificity. But I bet you, if we refer back here, we'll find all these numbers here right 8.9 to 9.1
+1 point
+I saw 1994, 1994, you know, etc, etc. So it's pulling these numbers from the context, it was given.
+and therefore the numbers are accurate. Which is nice if you care about things like that. So this is it being applied just to straightforward information, retrieval. But you can imagine whatever corpus you've got can improve the quality of interactions with the Llm. For that purpose. And that's why this is such a general purpose. Thing
+so
+let me check. If there are any questions about this code example, and then the remaining time, I'll be running through those notebooks, I think.
+Alright lot of debugging stuff. But I don't see any particular
+alright. So embedding model is tool to convert text to numbers. Sure. Vector, store.
+The embedding space. I mean, yeah, I consider the embedding space more, the mathematical concept, like literally the 3,072 dimensional space. Yes, I will get to Langsmith. But the vector story is what's storing the vectors. It's the set of vectors for the corpus you're vectorizing.
+And then
+the. So the vector store, the index is I, I view them. The vector store has an index, essentially, or I don't know. It's how you're searching it. But the Retriever, the Retriever is similar to the upload process, but just focused on one vector, at a time. The retriever embeds your query.
+And so it does convert numbers to text, and then it also uses those sorry converts, texting numbers.
+So it's not numbers to text. The retriever converts text to numbers and then uses those numbers to retrieve relevant documents based on the similarity score from the vector deep.
+So these things that I ran
+because I set all those environment variables, you'll see. And this is me running a little bit before class as well.
+These are the traces.
+So these are essentially records of what we just did. And it broke out the different aspects. And a lot of this, if you use mostly lang chain libraries, the things will be instrumented kind of automatically assuming. You also set the environment variables to connect to Lang Smith and some useful things to call out here. And why this is different than just a regular observation platform. It gives me how many tokens
+which apparently I didn't even manage to add up to a penny yet. But that's okay 2,609 tokens
+and if we look at the actual interactions we can see
+the retriever step. And we can see these payloads.
+So this is the payload that represents these documents we printed here right?
+And this was what was retrieved from the vector store from pine cone.
+And then we can see the prompt template. And we can actually see how
+to drag around to see this a little bit better. But we can see how in the raw
+the response. Sorry, the question includes the user question. And then context. And then the documents. So that's how we're not engineering the prompt a lot here. It's pretty simple. But we're including all of the information from all those retrieved documents along with the user question to the Llm.
+and we see the actual Llm
+human, what it considers the human input but it's not just human. This is human plus documents from the vector, store.
+And then it's raw output in the actual. And by the way, you, I mean, you get the actual text, which is typically what we care about. But there's a lot of useful stuff here. There's internal details that we're not going to get into right now. But if you're debugging or configuring things more advanced. Yeah. You see all sorts of things about tokens, and if you're going to be setting other hyper parameters to to change how the element behaves
+you'd want to be looking at this more. So. A lot of stuff here. We will see more of this in future.
+You also get latency. And you also, have the ability. This is not something that's relevant for this. But you can actually annotate and Curate Llm responses and build data sets right here. So you can actually or you can expose via an Api, the ability to build data sets, and that can be pretty useful as well.
+So that's Lang Smith in a nutshell. Let me get the notebooks up. And at this point, I think basically just get a very quick tour of the notebooks, and then you all
+can run the notebooks interactively and play with them more as you'd like.
+Nope.
+alright. So we've got rag fusion and similarity search which one's good to look at. Here
+we'll start with similarity. Search so similarity. Search this one's actually pretty straightforward. But it will give you an interactive way to play with this. If you want to gain more of an intuition, we're using face, which is an In memory vector store.
+You could think of it as sort of like sqlite running in RAM or something. But for vectors instead of SQL.
+And we're going to
+use the same large embedding model, and we see if we give it. Hello, World, and we look at the 1st 5 numbers from it.
+This is what we get. But indeed, there's a lot more than 5 numbers
+right there. There really is. I've been saying 3,072 a bunch. I'm not.
+I'm not lying. There are a lot of numbers.
+And we're gonna make our list here of like, think of these as Hr statements or something. Alice works in finance. Bob is a database. And then Carl manages Bob and Alice. We put all those, calculate all the embeddings, put all of the embeddings in in this case our vector store. Is this
+the in memory? One?
+And then, if we ask, Tell me about Alice, what we'll see
+is it can sort the 3 documents, and we get the actual number here. This is the actual similarity. So actually, not that this one isn't a 0 1 in the trick.
+and lower is more similar. You could think of it as a rank. That's how this happens to be outputting the score.
+and Alice works in finance is the most relevant to Alice. So it's got a score of about point 8.
+Carl manages Bob and Alice. Well, hey, Alice is there? So Alice is relevant. But there's also stuff about Carl and Bob. So okay, 1.2 4
+bob is a database administrator. Well, that's not about Alice at all. So that's got the biggest number which makes for the worst score, and how this particular Api works. And you can play with this more and just get an intuition from it. But
+essentially, this is this is, there's no Llm stuff happening here. I mean, there's language models that are calculating the embeddings and the language models are actually in some ways similar to Llms. But
+this is just the query retrieval step from a simple in memory database.
+So this one is a little more involved.
+But we'll run through it
+in this case. Oh, so I actually, I don't know that I set that. So I'm gonna set that
+myself here. Rag fusion 1536.
+I'm doing that because I don't think I put the environment variable in my file, but I can just define it here in Python, and that's fine.
+So we are connecting now to a different index, because we're going to use a different size of embeddings for this example, just to show that. But we're still going to use pine code and openai.
+And these are documents that are about climate change.
+And
+they're not real documents. They're sort of hypothetical documents, just the titles as an example. And you could consider the titles a chunk.
+and we're gonna store all those.
+And then we're going to set up to retrieve. And another cool thing about lang chain is they actually have a hub
+full of prompts. And so we're gonna pull
+a instead of doing our own prompt engineering. We're going to pull a pre engineered prompt for doing rag solution. So rag fusion, you recall is when we say, Hey, the user. We're gonna rewrite their query a few times.
+Alright, it's just a warning, all right. We're gonna rewrite their query and use the rewritten query to retrieve documents because we think that the documents these documents are written the way you know, academics and such would write a title.
+and users are gonna ask questions with more colloquial language or different sort of language, and we want to rewrite, to make sure that we query as effectively as possible.
+then, and this is
+very brief introduction to what's called the lang chain expression language. Lang chain allows you to use something kind of like what you've seen in the Cli piping things together to make a chain and a chain will let you then interact with all these pieces.
+but just once, and the way it generally works, a lot like command line like Unix command line is this, basically mostly speaks text. Llm, speak text. So you're getting text. You're returning text. Now, I'm simplifying a bit here. There's some structure. Really, this would probably be better thought of as dicts or Json objects, key value pairs where certain keys and values matter.
+I will leave that detail to the documentation, but we are making an overall combined chain that lets us start from the prompt
+feed, the prompt to open AI get the output from it and then look at the output spit by new lines.
+So the original user query is, Hey, what's the impact of climate change right?
+And skipping ahead to this.
+if we invoke the original query.
+what we find here is these documents, climate change and its impact on biodiversity. But we can look at this
+partially here. We can, instead of just invoking the chain, we can invoke, generate queries right?
+So we made another chain here that combined things more original? Query, query.
+So the query rewriter which we pulled from the Hub took our query impact of climate change, written somewhat casually and rewrote it into these 4 versions, the effects of climate change and biodiversity, economic consequences, social impact. So the user did not use any of these words. They did not say biodiversity, economics or social.
+But those are 3 words that are pretty good and relevant in this context that makes sense to include as we're calculating vectors and getting these semantically similar documents. And so having these rewritten versions is really handy.
+And then that goes, all these queries get mapped. The map is here because there's multiple of them to the retriever.
+And so we retrieve for all of them.
+And then all of that output goes into this the reciprocal rank function which, as I very briefly described in the slides, looks over all the different sets of results. That's why it's a list of lists
+and is keeping the fuse scores. And that's why, if something happens more than once, you know, it's already in it already has a previous score. So the score just keeps going up. So the more often you see something, the more you bump its score the better it is.
+And then we return. The re ranked results combined from all the queries. And that's what we get here. And then.
+in a full rag example, we would actually use these these chunks, or
+really more chunks that are from these documents in the prompt template that we send to the Llm. To answer the actual user question right? But I leave that as an exercise to the viewer if they wish to add it
+alright. I got through all the code. How about that? I'm gonna check for questions in this last minute. Here ash, is there anything you want to add as we're closing up here.
+Ash Tilawat
+Ash Tilawat
+00:58:19
+No, I think that was awesome. Thanks, Aaron.
+Aaron Gallant
+Aaron Gallant
+00:58:22
+Sure. Thank you. And.
+Ash Tilawat
+Ash Tilawat
+00:58:25
+The next class is on optimizations and evals. So like this was the 1st class. We will have a second class on Wednesday. So a lot of questions, a lot of questions on parameters and hyper
+and settings and metrics. While that class is coming on Wednesday. I think today you should think about implementing rag and adding it to your slack application. And then on Wednesday we can talk about how to optimize it. I think the optimization example is unnecessary until you have a running
+example of rag. Correctly.
+Aaron Gallant
+Aaron Gallant
+00:58:59
+Don't. I mean, like I'm gonna do fusion super duper whatever like. Just start with something that has at least functional chunks of documents and retrieval, and gets it to an Llm. Right, and and then go from there.
+Austen Allred
+Austen Allred
+00:59:14
+Right. And since we started, somebody already deployed the open AI Api key to a public github. So it's now been disabled. We are gonna meet up later today and talk in depth about Api key usage and security. Clearly, there's a long way to go there. So we'll we'll fix that.
+There's a new one that's going to be shared. But please, please, please do not put any keys in anything that touches public anything. We'll we'll talk. We'll give you some strategies for doing that that are very basic. And then we'll talk about some more advanced ones that are more secure than but yeah, we'll we'll fix this. So thanks everyone.
+Aaron Gallant
+Aaron Gallant
+01:00:03
+Thanks everyone, and if we miss questions in the slack we'll we'll try to follow up Async.
+spencer
+spencer
+01:00:09
+I just wanna confirm what our goal is now is to play around with this with our chat app and see what we can make up
+with this.
+Aaron Gallant
+Aaron Gallant
+01:00:18
+I mean, the idea would be that an avatar would need to retrieve relevant information from the slack to act like somebody. So yes, start by just trying to add something that could answer questions based on the slack.
+retrieving chats from the slack. I would say that would be a good starting point.
+Roger's iPhone
+Roger's iPhone
+01:00:33
+What? What would that even look like? I I
+can. You just walk it through like as as a function. I I mean, I can bear. I'm I'm like so thinking through what the function would actually look like, can you just give an example.
+Aaron Gallant
+Aaron Gallant
+01:00:48
+So it's gonna depend a little bit how you built your app, and I think maybe giving a full answer to that will be beyond the scope of what we're discussing right now, so we might have to follow up in slack. But I think the sketch that I would offer is some sort of interface that well, I mean, let's let's talk about the tech side, not the interface side. The tech side would be something, presumably your chat. App
+has messages, and these messages are stored somewhere. Those are your documents, right and potentially. You don't even have to chuck, as I sort of hinted earlier. If your if your messages aren't that long, your messages are your chunks.
+so you would potentially start by retrieving messages.
+calculating embeddings for those messages and storing those in a vector store, and then and you don't. Even you could just do this experimentally in python, in a repl or a notebook. At first, st if you want, take those messages
+and have an something like we showed where a user asks a question and to answer the question, you retrieve relevant messages, and you combine those messages with the user question in order to answer the question.
+and you could start as simple as like, just ask the chat like, ask ask the entire chat, genius app, and maybe not asking a specific person. So like instead of an avatar, it's a bot that just knows all about the entire chat genius. And that's that's an okay starting point. And then you want to get to the point where you you do more prompt engineering, and you maybe delineate between the messages that are just in the chat, genius app versus the messages that are from the user being
+represented right, because the those messages are special, basically.
+But that's that's how I would begin to approach it. Does that help.
+Roger's iPhone
+Roger's iPhone
+01:02:29
+Yeah, yeah, yeah, it doesn't happen
+little more. And and Ash actually just said something in there, too, just like the simplest possible feature you could imagine. I just get to that, and then my! And then I'll you know I when I it'll go from there.
+Aaron Gallant
+Aaron Gallant
+01:02:42
+We'll start with avatar. I think this is the simplest possible I can. That that is still kind of a useful feature is like just basically a rag slack search right? Or a rag chat app search where it's just like I want to search the chat app and get questions answered
+based on the stuff that's in the chat box. Right?
+So that would be the starting point, I think.
+Alright. I do have to hop off ash. I don't know if you're gonna stay and answer more questions
+or.
+Ash Tilawat
+Ash Tilawat
+01:03:11
+Yep, I'll stay on for 10 min, and then I have another meeting. But thanks, Aaron.
+Aaron Gallant
+Aaron Gallant
+01:03:16
+Okay. See you, everybody. Bye.
+Ash Tilawat
+Ash Tilawat
+01:03:19
+What's up, Sebastian? Go ahead!
+Sebastian Cajamarca
+Sebastian Cajamarca
+01:03:22
+Yes, so I was thinking, like, you know, I I already have my chats in a in a database.
+and I'm a little bit concerned of. You know.
+How is the process to upload the information? So it has, you know, fresh information about the the people that is chatting. So how do you imagine this process on? I don't know, like every night, every day, because I imagine that every time that I upload the information and I create the new embeddings, because it's gonna be new documents and new things. It will have some cost.
+So I'm thinking, most, mostly in regards of how it's the actual way to do this on being, you know, as frugal as you can be.
+Ash Tilawat
+Ash Tilawat
+01:04:03
+Yep, you could just do it every 7 days, Sunday, late night, or something. For now and then, as the application scales and gets more users, you can make it daily. You can make it every 3 days. The way we do Mvp prototyping with drag applications is we just refresh their vector database. Sunday at 2 am.
+Sebastian Cajamarca
+Sebastian Cajamarca
+01:04:22
+Okay? And one last question is regarding. So so you know, that's in regards of data rights, then the other part is the Llm.
+Which one are we gonna use that are those credentials that we have on? Openai also works for using it for the Llm.
+Ash Tilawat
+Ash Tilawat
+01:04:37
+Yep, your opening credentials should work. If you want to use any Llm. That Openai offers, I would use the 4 0 Mini model. There's no need to use a reasoning model or
+4. 0, completely save some money. Use 4. 0, Mini.
+Sebastian Cajamarca
+Sebastian Cajamarca
+01:04:52
+Okay. And I imagine with the security breach, you're gonna send us a new keys through the mail, or something like that.
+Ash Tilawat
+Ash Tilawat
+01:04:58
+I already updated the new key on the Post for class.
+Sebastian Cajamarca
+Sebastian Cajamarca
+01:05:01
+Okay. Okay. Thank you.
+Ryan Zillini
+Ryan Zillini
+01:05:07
+Do we do? We know what time we're gonna be
+like required to go for the Aws meeting or the Api Key meeting.
+Ash Tilawat
+Ash Tilawat
+01:05:16
+No, the meeting hasn't been put on the schedule yet, so I don't know the time. But the Aws meeting is on Thursday, at 11 et 8 pt.
+I think.
+benji
+benji
+01:05:29
+So.
+Ash Tilawat
+Ash Tilawat
+01:05:31
+Sorry who was speaking.
+benji
+benji
+01:05:33
+No worries. I I was just gonna ask my
+my chat project is kind of big, and it'll go back and forth between looking pretty good and being completely broken when I deploy. And I'm wondering when we're testing this rag function. Is there a good strategy to do this somewhere separately, and then plug it into the application. Could I get a a brief
+bit of advice on that.
+Ash Tilawat
+Ash Tilawat
+01:06:02
+Yep, the 1st thing I would do is you have your messages stored in some database? If you don't, then that's scarier. So I'm assuming everybody here has their data their messages stored in some database. I would create some sort of cron job or function that you can manually run through command line.
+That would take these database messages and vectorize them or embed them and put them in a vector, database. Once you have that set up. You have a very nice little thing where you can either open up a notebook
+or you could, whether it's a Jupyter notebook, or just some Python code or Javascript code. You guys are not limited to python.
+You can just start querying this vector database that you've set up to ensure that the Retriever is working properly.
+Once you know that you're actually retrieving things, and the code is working for the Retriever.
+Then what I would do is connect the Llm. Don't connect the Llm. Until you see actual
+you know contextual messages coming back.
+After you have that like, and then let's say you connect the Llm. And all is working well. It's able to talk back and use context to answer those math questions.
+Then I would go back to your slack application, I would create a new Api route.
+The Api route will be connected to a
+the same retriever function that we talked about in your sample applications.
+and we would use that Api route based on certain commands in your slack application. Whether it's forward slash! Ask AI forward, slash! Ask slack whatever.
+and I would try 8 through your slack application with that vector database. That would be the 1st step. I do
+just get a channel working where I use a command to then actually communicate with the vector database. Once you're there.
+benji
+benji
+01:07:44
+Like.
+Ash Tilawat
+Ash Tilawat
+01:07:45
+You guys have a really nice setup where you can build things off of I.
+benji
+benji
+01:07:49
+That makes a lot of sense. So basically make the functionality and then connect the Api to it. Make an Api out of it, and connect the Api to it in your app. That that makes a ton of sense.
+Ash Tilawat
+Ash Tilawat
+01:08:00
+Yep, everything.
+benji
+benji
+01:08:00
+But.
+Ash Tilawat
+Ash Tilawat
+01:08:02
+Go ahead. Sorry.
+benji
+benji
+01:08:02
+Yeah. Well, 1 1 clarifying question you mentioned.
+you know, setting up the vector database, querying the database in the notebook and then connecting the Llm.
+Running through the steps today.
+The Llm.
+Seemed to be, you know, tied in with everything from the get.
+What am I missing? There.
+Ash Tilawat
+Ash Tilawat
+01:08:28
+I just meant connect the alarm for generation. I obviously you'll need.
+benji
+benji
+01:08:32
+Generation.
+Ash Tilawat
+Ash Tilawat
+01:08:33
+You'll need the Llm. For embedding. You'll need the Llm. For
+several of the lang chain steps, but I'm I just meant like, don't.
+benji
+benji
+01:08:40
+Okay.
+Ash Tilawat
+Ash Tilawat
+01:08:41
+Generate an answer with the context until you see that the context coming back is somewhat relevant.
+benji
+benji
+01:08:47
+Okay. Great.
+Thank you.
+Ash Tilawat
+Ash Tilawat
+01:08:51
+Taking a step back. I think. Before you guys tackle today's
+task, which is to add rag to add these start thinking about these AI features.
+I want you to sort of put yourself in a strategic product position. How would this look for the user? Maybe make a user journey
+right. The user is, gonna put a command in, ask a question to the slack, get an answer back.
+The user is going to then talk to a persona. What is the user doing to then actually use the AI feature?
+Do not go in blind and just start implementing rag.
+I really think it's important because everyone's slack applications are in different levels. They're tackling different areas. People have focused on different areas of slack for their implementation.
+Understand? How is this AI feature going to complement what I've built already.
+Don't pick an AI feature that is, gonna make you
+build more stuff. Just so it works properly.
+I really do think that
+if you think through the user journey, if you understand the approach you're going to be taking, it's going to be powerful
+for the Mvp. Tomorrow. You I just wanna see that you actually, you know the the pipeline. I just talked about the simple ask slack Pipeline, the Api route and everything me and Benji just talked through. I would love to see that. At least that right. If you guys are able to do that, I think that's a really big step in terms of Mvp.
+And then, once we're we have that pipeline working the Api route is working. It's actually retrieving things.
+Then we can talk about how to make it more complex. On Wednesday.
+Roger's iPhone
+Roger's iPhone
+01:10:30
+Could anybody type out what that process was? I was like trying to keep up with it, and it was I was following it, but not following it.
+benji
+benji
+01:10:39
+Posted in the slack thread.
+Roger's iPhone
+Roger's iPhone
+01:10:41
+Oh, you did! Awesome thanks, man.
+benji
+benji
+01:10:43
+I will. Yeah, yeah.
+Ash Tilawat
+Ash Tilawat
+01:10:48
+yeah. So it's just
+breaking down the task. Right? So if you were to look at all the components, the 1st step is the vector database. So get some fake data in a vector database upload that data.
+and make sure there's some messages in the vector database for you guys to actually query.
+Then, yeah, let's put the summary in the discord and the slack. That'd be great, not just the discord. And
+the only other thing I put it.
+benji
+benji
+01:11:14
+In the slack, not the discord.
+Ash Tilawat
+Ash Tilawat
+01:11:17
+Okay. Thank you.
+benji
+benji
+01:11:18
+Someone else can put it in the discord.
+Ash Tilawat
+Ash Tilawat
+01:11:20
+And then the other thing you want to consider is like, Okay, now, I have this vector database. I have this code from Langchain to query that database? Let me just try to query something.
+so get the get it just printing to the console. Understand what your career is. See what's coming in the terminal. Once you have that running, then you can sort of think about, okay, how do I connect this to an Lm, how do I put a prompt in it. So it understands what this context is actually doing. And then you can think about
+connecting into your slack application. But everything should be through an Api route.
+That would be my suggestion. Use an Api route to sort of
+abstract away a lot of that functionality.
+You could do messages or documents.
+I'm okay with it, either.
+Yeah. So if the messages are not like helpful enough, you can synthetically generate your messages using AI or you can use documents as a placeholder because you don't have enough messages.
+This is everything is in the same project. Don't start a new project. This should be building on top of your slack foundation. Not rebuilding anything.
+Okay?
+spencer
+spencer
+01:12:37
+One last question, real quick ash. So
+the vector database essentially is just we're giving it
+created at username. And the content of the message.
+Ash Tilawat
+Ash Tilawat
+01:12:50
+And the vectorized version. But yeah, that's correct.
+spencer
+spencer
+01:12:52
+Vectorizer. Okay, just making sure. That's.
+Ash Tilawat
+Ash Tilawat
+01:12:54
+I think there's more optimal ways to do it. But let's not get into optimizations until Wednesday. I rather people get the Mvp working, and then we can think about like you can save so many parameters. Right? You can think you can save that this was in a thread, so you can save the thread. Id, for example.
+spencer
+spencer
+01:13:09
+Okay.
+Ash Tilawat
+Ash Tilawat
+01:13:09
+You can save the context. You can save the the sentiment of the message. But again, we're not going to get into that right now I would start off with something simple, and just get get the ball rolling.
+spencer
+spencer
+01:13:19
+Awesome. All right. Thank you, Ashley.
+Ash Tilawat
+Ash Tilawat
+01:13:21
+Yeah, of course.
+Okay, I think Austin's gonna put another meeting on the docket for keys.
+But I do want to say that keys are very important to manage correctly.
+I have heard stories of junior engineers exposing keys and not having a job eventually, so I think it's very important to understand that.
+Obviously, this is a learning environment. So I'm not saying, like, you guys are in trouble or anything.
+don't get me wrong. But like at the same time, like let's get be more mindful. You can get a git. Ignore file by just Googling. Dot git ignore with the language you want, and it will pretty much generate a really nice file for you. You can also find them on Github.
+Everything you do should be local right. You should only send it up to Github.
+You should only send up the files that are
+relevant to your application code up to Github, right? So there's no need to send in Yourenv file there. You need to make sure that you're not hard coding any values into the files that you're using.
+When you do use the git, add command. You don't use. Git, add all or get. Add dot
+right you want to use. Get status. You want to see all the files that are updated. So we're going to be walking through all of this later today. But I just want to re restate the importance of managing your environmental variables.
+Okay, thanks, guys, I'll see you soon.
+calemcnulty
+calemcnulty
+01:14:49
+Sorry. Actually, I just had a a real quick question about that before, did. For aws, there's the Aws Key store. And then you can also do their docker managed version of that. It looks like our Iam users still don't have access to that, though, and I was wondering if that's something we can get you guys to take a look at.
+Ash Tilawat
+Ash Tilawat
+01:15:11
+Yes, I will make sure by Thursday. That's resolved.
+calemcnulty
+calemcnulty
+01:15:15
+Excellent cool, thanks.
+Ash Tilawat
+Ash Tilawat
+01:15:18
+Also, there's a bunch of free. So if people who are not using aws, sorry, calum
+if you're not using aws based on his point. Obviously, Aws has a
+a software to handle this. But there's also open source key handling softwares that you guys can use. So feel free to Google and try that out.
+Okay, see, you guys, bye.

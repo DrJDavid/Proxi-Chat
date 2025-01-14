@@ -1,0 +1,817 @@
+Austen Allred
+Austen Allred
+00:00:00
+If necessary.
+And there's gonna be a lot of logistical stuff today. More than there normally will be. But we're all getting on boarded. We're all getting everything all set up. We're getting. There's access to a whole bunch of stuff that we'll talk about later. But just to set the agenda for what we're going to be talking about today. We're gonna start with kind of introduction. Hello, a little bit of overview stuff.
+And then immediately after that, we're going to kick it over into our 1st lesson. We're going to start talking about AI 1st development and what our 1st project is, and what we're going to be working on pretty much immediately, and then we'll start building from there later on. Today. The founder of trilogy. His name is Joe, and he's 1 of the
+brain children and the deep pockets behind. All of this is gonna pop in and say hello and talk about why we're all here, and why we're excited, and why all of this exists. In the 1st place.
+But I think this is just really really cool, and I am excited to be here. So with that I am going to share my screen and share a deck, and we're going to walk through some stuff together.
+know that. Generally speaking, we avoid.
+we're more excited about building and logistics. And then, you know, going through details and getting access to software. But there's gonna be a lot of that today. There's a lot of software we're gonna be using. There's a lot of logistics that we have to cover.
+And there's a lot of the, you know, as as we get started, it's gonna feel like a lot, but very, very quickly you'll get into the swing of things, and we'll spend most of our time learning and researching and building. So with that said.
+gonna share my screen and present
+and I will monitor the zoom, slack or sorry. The zoom chat to the extent that I can so feel free to message in there. But know that those those messages will disappear pretty much after this meeting is gone. If there's something that's more permanent feel free to ask it in the slack chat.
+But for now let's just use a zoom chat. We'll we'll get into all the fanciness of best ways to
+do these meetings later. Alright, so call it AI,
+what is going on? Why are we all here? What is this?
+So
+basically, the this is the result of. And I apologize. If some of you have heard this before in info sessions, some people haven't. So we're gonna go over it again.
+we started working with a handful of companies. Over a year ago we were, you know, we ran code schools and different, you know, learn to code type of programs. And all of a sudden company after company was coming to us, saying, Hey, this is really cool, but we've got to figure out what's going on in AI. We need AI, AI, AI! And we went out to those companies and said, What is it about, AI, that you?
+What about it? And they said, We don't know, just we hear Buzz, that there's something going on with AI. We don't know what it is. So can you figure that out. So we sent out a research team, and they spent quite a bit of time painstakingly going company to company, trying to figure out what was working within AI.
+And what they found was pretty surprising, at least to me. They found that 95% of companies had no idea what they could or should be doing with AI. And all right, let's refrain from drawing if we could. And a handful of people were really really advanced, and it was kind of one of those situations where the people who really knew what was going on were like
+individual engineers sitting in the basement playing with Llms. And it had not, you know, it wasn't coming top down from the open AI team of this is the best way to build stuff. This is exactly what you should be doing. It was a lot of random engineers figuring out a lot of stuff along the way, and you'll notice that that's kind of a theme of what's happening in AI.
+We are in the Homebrew Computer Club days. So people are doing magic with AI but
+not many people know what is possible or what is out there. And frankly, I think most people haven't seen what AI is truly capable of, so we we don't profess to be
+the people who know everything. And there's still going to be stuff that we don't understand yet.
+And that's unique for me in an educational position where we're going to be learning stuff right alongside of you guys, and stuff is going to be changing faster than any curriculum can possibly be built. But that's what also makes this really exciting. So the way we look at AI is, it is the biggest force multiplier in human history. If you look at kind of
+an analogy of what the steam engine did for factories or kind of what the Internet did for generalized human knowledge. We think AI does that level of change for individuals who are trying to do things. We're trying to build things. So we had a few of the companies that we were working with. They are some of the biggest
+hirers of software engineers on the planet. They have tons and tons of engineers that they're working with, and they would. And they measure things really religiously, and they would see crazy, crazy shifts in productivity. We're talking across thousands of engineers, hey? The entire team got 50% more productive last quarter. And then another 50% more productive this quarter. And you know, so you're really good at math. That's more than 2 x in like 6 months. That's completely unheard of.
+And so they started looking into it more and more, and realizing that it was really really difficult for them to get their existing staff to adopt new skills and adopt new practices, and that if they could find people who are really smart and really hardworking, who were
+really willing to go all in and become AI. First, st the amount of value that you can create by having that is so extreme that it it kind of became a conversation of how can we get as many of those smart, talented people using AI as we possibly can, and that became gauntlet. So
+those companies are funding everything. Those are the companies that want to hire you all. We're not going to have enough engineers on the other side for them to hire. They would hire what we're going to have at the end, and some again. But
+yeah, at the end of the day AI is super super powerful. And we'll we'll go over some other stuff in a little bit. But
+So the way that gauntlet AI works our overall goal is to create the most sought after AI builders on the planet. We'll talk
+about what we mean when we say AI builders. But it is an extremely intensive 12 weeks. When we say extremely intensive. We really really mean it. We're not exaggerating or lying when we say 80 to 100 HA week and a couple people. I had one person this morning message me and like, Hey, I think this is going to be difficult on top of my full time job, don't you? I said. Yes, I think. I hope we've been clear. This is impossible to do.
+In addition to a full time job, it does not work. We are
+on a mission to create a credential that is more sought after than Stanford or Mit. We want at the end of this. Our goal is for every company to look at what you guys are doing. And say, man, anybody who came through Gauntlet that's hands down the 1st people we want to hire in any situation.
+How does it work? So it's gonna be 4 weeks remote. And then 8 weeks, all expenses paid in Austin, Texas. We'll talk about logistics, of all of that along the way. Basically. February 3rd is moving day. Assuming you're still with us at that point, we're flying everybody out. We're putting everybody up in hotels. We've got another 8 weeks of
+fun. Times in Austin. Participation is a hundred percent free. I'm sure you've all you're all aware that none of you have paid anything, none of you ever will pay anything.
+and if you complete the gauntlet you receive an offer from, there's a company matching process along the way. You get $200,000 a year job as an AI engineer in Austin, Texas. That's 200,000 base benefits are on top of that. It's a full time. W. 2. Very intensive role probably
+can't continue on at 100 h. Some people can. So you know. Not necessarily a hundred hours a week, but they're not going to be 9 to 5 clock in clock out jobs, either. Very intensive, very startup like, and there's a lot to build.
+So with that said, there are things that are easy for us to solve, for and there are things that are difficult for us to solve, for, or that require a little bit more effort and energy. So in the admissions process, as you all saw, we started with the seacat, which is a general cognitive assessment. Our bar for that was very, very high.
+If you are here, you are smart almost by definition. We know what you're capable of. We know what your intellectual horsepower is. I find that it's rare. People admit that in this day and age, but it's
+that does matter. The next parts are all going to be about how hard you can work, how fast you can learn. And this is as I said, this is all in. This is not a side project. This is not something you're going to be able to get by
+halfheartedly. It will be very obvious to everybody instantly. If that's the way you're trying to do things. So if this isn't for you, I should say this upfront. There is no
+ill will or malintent. If that's the case, that's totally fine, let me, you know the
+if you want to to ring the bell and say, Hey, I'm I'm out 100 acceptable. No judgment. That doesn't mean you're not a good person. But that door is always open to you. We. We want you to be here for the right reasons. We want you to be here and be committed. Everybody you, if you're not committed you owe it to. I think everybody else who is committed to to
+open that up to yourself and let us know, and we'll make adjustments and everybody will go along their way. I've gotten a bunch of emails over the last 48 HI don't know if it's something that happened in the, you know, unofficial discord people saying you're positive that you're not going to charge us a bunch of money if we drop out early, or if we don't take one of the jobs that are available.
+No, there's there is never any scenario under which you have to pay gauntlet AI a penny.
+so I hope that we're a hundred percent clear there.
+If this is a scam. It's the most inefficient, ineffective scam there has ever been. So there, yeah, you'll never pay any of us a penny.
+Alright. So with that, let's get into building with AI, and what that means? So when we talk about AI,
+we're specific. We're not talking about, there are companies like Openai and Xai and Mistral and anthropic, that are spending literally billions and billions of dollars building these really powerful models. They're slurping up all the data that exists. They're generating new data. They're turning it into these super powerful models.
+Our goal is to be able to use all of that in the most effective way possible.
+So we're not going to compete with Openai. Right? We're not building the next chat. Gpt, we're not doing frontier research of AI. Our goal is to ride the wave.
+and we mean that very intentionally. We'll talk about that quite a lot. If you're on the cutting edge of AI. You can do stuff that would have blown everybody's minds honestly at this point, probably 6 months ago, but definitely, a year ago, absolutely 5 years ago, you couldn't even fathom how quickly you can do stuff, how much you can do.
+And so so yeah, our our focus isn't on our focus is making use of AI. Sebastian asked a really good question. In the chat. Are we going to train our own models or use pre trained models and leverage from there?
+Yeah, that's what I'm trying to say is, we're going to use those models that other people have trained for us, creating a model that is better than them is a multi-billion dollar decade long investment. So we're we're using all that stuff that people are building
+in the 19 eighties. We're not trying to build the next best computer. We're trying to figure out how to use computers really, effectively. So
+that's what we mean when we talk about riding the wave. And then let's talk a little bit about AI. First, st this is a
+graphic that AI created for me, and you'll notice that will be a theme. We do practice what we preach, at least we try to. So what I wanted this graph to display is that when you 1st get started, if you are used to building stuff. Yes, John applied. AI is a really.
+yeah really good way to think about it. We'll talk about Anthony. That's a good question. What about fine tuning models. We have strong opinions about fine tuning models. Generally speaking, even fine tuning right now is a lot less effective than using different techniques that are much cheaper and more effective.
+We can teach you how to fine tune. It's not very. It's not crazily difficult, but, generally speaking, using better. Qc. 1st principles and better rag. And we're not even talking about that stuff even today. Do a better job than fine tuning for a lot. You need just a crazy amount of data to do it
+to make a model better with fine tuning. But we'll we'll we'll talk about all that as we get into the weeds.
+I'll share the prompt with you. I think it was. It was
+the prompt. I used to create this. I think it was Gpt. 4.0. And I basically said, Show me a curve where? And I made a couple of changes along the way where there's 1 curve that increases over time, and then there's a flat line that stays exactly in the same point, and there's a crossover point, and I told it what the X and y axes were. But basically all that we're trying to say here is
+building AI first, st when we talk about building AI first, st that's you're not writing code. We don't want you pretty much ever
+to initially write code. The AI is a better engineer than anybody in this room when given the opportunity to do so. Your job is to direct and to conduct, and to prompt and to give boundaries to, and to teach that. AI what it needs to do
+in the beginning that feels slower and it sometimes is slower. It's especially if you're a really really good engineer. It takes a minute to
+to get to the point where you're better with AI than you are manually so if you're a really good engineer and I I see in the chat. Yes, I did. We are getting everybody's getting cursor pro today. We'll be sending you invites to that
+literally right after this call. That's you're you're jumping a couple of slides ahead. But the
+it may feel slower if you're a good engineer at first, st I promise you, give it a week less than a week, and you'll be on the other side.
+it. So just get used to letting AI write the code for you. Let AI do the 1st pass. At 1st it's going to be like I could just do this more easily myself.
+but
+pretty quickly. That will not be the case alright. I'm gonna ignore the chat a little bit. We gotta we gotta keep moving on. Yes, we're gonna give. We're gonna give you guys access to so many tools that access to tooling will not be the thing that you're
+You're frustrated by. The we've got tools that you guys.
+we haven't even you've never seen, because some of them we built internally. Anyway. So when we take a step back and look at okay in the the new world of AI. What does it mean? What it would take to build a product that's worth, say, a hundred 1 million dollars. If you were to ask that question 5 years ago. It's like, okay. Well, I need, you know, a team of
+a hundred people. I need a bunch of capital I need like we don't think any of that is pretty much true anymore. We think it pretty much require. And you know, trilogy, who is behind one of the companies behind this, and they also operated Trilogy University, which you'll notice we're not quite a direct clone of. But we're basically rebuilding Trilogy University.
+they own and operate more than 150 different software companies. They measure everything more rigorously than any company you've ever seen, measure stuff. They're really, really good at building software products. And some of this comes from their thinking but so what we think is required to build a product worth a hundred 1 million dollars is AI 1st development
+that takes the the number of people requirement down from. Maybe it used to be a hundred. Now, it's probably one, maybe 2, maybe 3. But it's definitely much, much smaller, a lot lot smaller investment, a lot lot more. AI
+and that that's what we talk about when we say AI 1st development, there are, I mean.
+we've talked to individual teams that literally, it used to be 15 people operating this team. Now, it's 1 person and AI, that's
+a hundred percent happening in production in major companies today.
+and the second part is both requirement to use AI 1st development. Because
+AI is changing so rapidly and you have to learn to learn to use AI we're not going to focus on that as much today. But that'll be a major component of gauntlet, not just, you know, building with AI to make stuff really quickly. But
+in order to do that you have to be able to learn really rapidly. You have to be a voracious, self-driven learner, and we're also going to be using a tool that we call brain lifts. So think of a brain lift is basically a second brain. But it's
+a second brain that we build in such a way that it can be fed to models. And we'll talk about reasons that that's true. A lot in the future.
+but one of the main reasons is that for AI, if you think about what AI generates, it's basically a consensus driven view of the world, it's swallowed all of the data that it's found. And it kind of unintentionally develops this mental model of the way the world operates, and sometimes that mental model is wrong.
+Or it overemphasizes or under emphasizes different
+factors that are really, really, really important to building good products and to making AI work. Well. So one of the things that we'll talk about a lot is how we build a second brain. We call it a brain lift, and how we make it. So that what's in that brain lift overrides the general thinking of the model.
+That's the way you force the model to do the right thing, and you do have to force it. You have to push it. You have to fight with the model because the model is so trained on
+the consensus view that when there's something that's non consensus. But true, we really have to RAM it down the model's throat. We'll talk a lot about that
+and then that also helps us.
+You have to learn really quickly and adopt really quickly. Even. You know, we started building this curriculum several months ago, and there are entire portions of the curriculum that we would have built that became completely irrelevant. There are other parts of the curriculum that we had to completely rewrite, and that's in a period of several months. Right? Imagine what it looks like over 5 years. I literally can't even imagine what things will look like 5 years from now.
+a year from now. So we're going to have to learn to learn and learn to stay on the cutting edge of what AI is rolling out.
+That's a little bit intimidating, but I think it's super super exciting.
+And the
+yeah, it's a good question. We're we're gonna have a full session on this later this week. We for
+the tooling that we use for brainless. We use a tool called workflowy, and we'll give you all access to that. But basically, there are any number of tools that operate pretty similarly, workflow is basically based on a graph database. And it lets you kind of outline things and fill it. We'll talk about it all. But yeah, we'll give you access to the tool, and the tool we use is called workflowy.
+But the tool isn't the important thing. It's more the the format and what you're putting in the brain lift and how you're using it, and all that other stuff. So
+the other thing that we'll talk a lot about is what we call Qc, first, st AI or quality control. First.st AI. So the great and terrible thing about AI is, if it doesn't know the answer to something. It's going to give you its best guess. And that best guess, because it's based on the consensus driven view of all the data on the Internet. It's going to sound pretty plausible.
+you know. As an example, if you tell AI to build X writing code, it will build X. It may be completely the wrong way to build X. It may not be the X that you were thinking about. So a lot of what we do is kind of reining in or building a framework around the AI and letting the AI fill in that gap. And we call that Qc. 1st AI. So a lot of the time you're you're defining
+guidelines. At which, so, as an example, you could say, Hey, I want X very explicitly. Now go try 5 different times to do X and give me, you know, based on this Y metric. When you're giving me an output, give me the output that best
+solves for why? Yes, workflow is very similar to obsidian roam. It's what they use at trilogy, which is the reason we use that before that I use roam research obsidian. It's all they're all pretty similar. I mean a tiny investor in Rome research. I should disclaim that we're not going to use that for
+for Gauntlet. All right. Now, let's get into some logistics because there is a whole lot of software. There's a whole lot of stuff that's going to feel a little overwhelming at first, st because there's so many different tools that we're throwing at you. Obsidian and roam are.
+Yeah, they're they're tools to.
+They're second brain tools, you can. Yeah,
+alright. So the most important ones. Email,
+you should all have access to email. But I can see on my dashboard. How many of you have logged into that email so far?
+And it is not yet 100% of you. So if you have not used your gauntletai.com email, please log. Into that we sent those invitations to your personal email address. But the easiest way for us to grant access to tools is going to be sending stuff to your gauntletai.com email address.
+or sometimes we can just white label, Hey, let anybody with gauntletai.com email address, create this tool automatically. And so email is probably the most important tool. Second is slack.
+If you're not in the slack, get in the slack.
+That's a an invite link that you can join most of our day to day. Communication is going to be in slack and then Calendar, we have a Google Calendar. I've noticed that some of you are not as familiar with using Google account. So Google Calendar, it lets you if you use the Google Calendar link in 99% of ways, it will. Whatever
+you can either add it to the calendar app that you're currently using, or the the calendars are pretty good at being interoperable with each other. So if there's a personal calendar you use. So I've got like
+I I can show you my calendar set. I got like 7 different calendars, and I can show you know this. This is my home calendar, my personal calendar is this the gauntlet calendar? Is this?
+And yeah, we can
+get into all of that if if you're not getting access to any of this. Please, I guess the the 1st 3 please let me know.
+The other stuff is all stuff. You're going to be getting access to some of them during the 1st lesson. Some of them, as time goes long, but every every additional access thing
+will be sent to your
+gauntlet. AI email address. So the 1st tool we're gonna get access to is work smart. So work smart is a tool that it's mostly for you. It's a little bit for us. But you turn it on, and it's going to
+watch what you're doing. It's going to see how productive you're being. It's going to look at the way you're using different tools and recommend changes. It's really, really cool. The part that's for us.
+The the part that's for us is, it will
+monitor your usage and send that data pretty much to me, specifically, and we're going to use AI to look at that and identify if there are any.
+you know, if
+there's particular models that are working better than others, if there are workflows that are operating better than others. There's a lot of cool stuff that we can do.
+you can delete any. So it's it's something that you turn on. It's not monitoring anything unless you're turning it on. We do ask you to turn it on. It just makes everything at Gauntlet Run. You turn it on when you're doing gauntlet stuff if you're not doing gauntlet stuff. Turn it off
+and you know, go about your day. Do whatever you want. We are requiring it just because it's impossible to do a lot of the things that we need to do without work. Smart but again, turn it off if you don't want to, and it does allow you to delete any of the logs that you don't
+want at any time. So that's totally an option. You're also gonna get access to what we call the platform. Your.
+since we're using personal computers, what's the soft work smart from recording sending personal information? Yeah, that's a really good question. So there are a couple of ways that you can manage. That one is you can either turn it off when you're doing personal stuff. Or some people want to create a a separate user within a computer that's for gauntlet stuff only and use that user only install work smart on that part,
+on that user and don't install it on your personal user. So, however, you want to do it is totally up to you. It's just the only way that we can make something like this work. So yeah, personally, I have it on. I just turn it on and off. I don't wanna be, you know, logging in and out of different users. I'm a little bit lazy, but if you're more conscious about that. Then put it on a different user on your computer.
+works smart available on Linux. I believe it's on Linux. Yeah, let me. I'll triple check. But but yeah.
+alright. And then platform. When we say platform it's the platform that we built for Gauntlet. If there's a question about something you'll get access to that later today. But it's
+that's
+the the system that we built. So you'll use your gauntlet, AI email to log into it. That's how you'll submit assignments. That's how you'll you know. That's that's kind of our learning management system. That we built. Then, you know, development tools we talked about?
+Yeah, what does Gauntlet do with the work? Smart data? We're basically just trying to use it to learn how to make AI
+like learn what's working and what's not within. AI work smart isn't recording the screen. We have a we do have a few people who volunteered to stream the entirety of their experience and get a little more data from that. But it it takes screenshots every so often when it's turned on and it logs your keystrokes. So
+know that, you know, if you're doing personal stuff using passwords, please turn work smart off.
+obviously, we're not like, I don't want your personal information. I don't want your personal data. We're just trying to trying to learn from it.
+this is a good question. It's not open source. But I can. We can show you the logs turning into a fully automated engineer model. I mean.
+candidly, you guys crossover, which is the company that built work smart originally built it as a tool to allow freelancers to build stuff. They have tens of thousands of engineers using work smart if they want to, you know, build a model with that stuff. They would do that. What what we're really looking for is to understand
+how you guys are using AI and how we can help gauntlet students better use AI
+So for the students who are
+yeah, I'll I'll send you guys all the all the data to the work. Smart stuff. It's not.
+Yeah. It's a really. I mean, I I like using it just because it helps me know what to use. But I want you guys to be
+aware of everything that it's doing and make sure that that is the
+work. Smart data from top secap performers, new models for wrangle models, 0 human development. If only no, there's
+We're so far away from that, as you guys will very quickly see? Yeah, I don't.
+Okay. I'm
+I'm having trouble keeping up with the chat, so I'll send out a bunch of faqs on work smart, or feel free to message me totally understand the skepticism. And I wanted to make sure.
+like talk about that head on, because if I were in your shoes I would be asking the same questions. We're not going to use it to say, Hey, you weren't, you know.
+You weren't sitting there for 10 h today. But we I mean there is a there's a mode called Gimble Walk, where we can just walk around and see what everybody's working on. And stuff like that. But yeah, at the end of the day work smart is a way to help you become more productive, and it's a way for us to get smarter and better as gauntlet.
+So that is what it is.
+The development tools that you'll be getting access to. Everybody will get access to cursor. Pro
+yeah, I mean, look
+let's let's I think that's a really fair comment, Mike. And it's something that we should talk about. The purpose of this program is to create the best
+employees for the hiring companies as possible in order to do that. My my job is to like I
+I don't. You guys don't pay me right. The companies pay me because they want us to help create really great employees who are going to create a lot of value. And
+so the the way that I generate the most value is, I help you guys become the most effective employees that you possibly can be. That's my job. If
+and I think the
+the incentives are actually more aligned there than they have been in times when people are paying me tuition. And I say, Hey, I'm gonna try to train you really. Well, I am going to be. If
+my relationship with you guys is, if you're falling behind, I'm going to be honest with you. I'm going to tell you that you're you need to step it up. I'm going to tell you that you're falling behind, not because
+I I mean because I want the best for all of you. So I only succeed. If you guys are all successful. If
+yeah, if if stuff isn't working, then it it harms me. So we're we're we're definitely on the same team. And the goal is to create as much value as we possibly can for for the hiring companies. When you're ready to work for them.
+along the way. Obviously, you're going to be learning a ton. You're going to. I think it'll be a formative experience. But yeah.
+is work smart. Used to measure the amount of hours. So yeah, Ryan, that's like.
+Gauntlet isn't really free. We're putting in 80 to 100 HA week. I mean, you're right in the sense that, like learning takes time, and we're asking a lot. But you're not generating anything like the IP that you're creating. You're not like building products that we're going to go sell. The only value that the companies get out of gauntlet is hopefully, you guys become
+good enough that they can hire you. That's the only the only value these companies are getting.
+So the our goal is to do that. All right.
+Yes. That's a really good question. I'm I'm gonna so 1st let me let me get into some of the
+more logistics real quick. So you'll be getting cursor pro later today. That's probably the I'd say my assumption is that that's going to be the main tool most of you use. Cursor is really good. Everybody gets aws accounts. So anything that you deploy. You know the companies are covering all of that you'll get workflowy, which we'll use for brainless. It's a tool called E 4, which we'll talk about later. It's a tool that lets you run different?
+it lets you
+run different queries and run them against a bunch of different models at the same time as a a tool that we've built internally. So you can see which models are better, which models are faster. You can see how similar and how different all the different models are. It's really really cool.
+I wouldn't have a concern if it was a company laptop. Yeah, create a different user on your laptop and treat it as a if if that's a concern, I
+yeah, create a different user and just install work smart on that one user and treat that user like, it's the work user.
+Are there? Pcs laptops available for use in Austin? If you don't have a laptop, let us know.
+I think most people were planning on bringing a laptop. But you know, we're not like gonna show up with 200 macbooks. But if there's if you don't have a computer that works. Let us know.
+yeah. So let's talk about streaming for a minute a handful of people. I think there are 5 people who have volunteered to stream pretty much the entire experience of Gauntlet. The reason that we want them to do that is a because we think it'll be cool for them to stream and build an audience. We're not trying to keep Gauntlet private. We're trying to build in public as much as we can, and
+that for the streaming. Explicitly, we are going to
+watch how they're using AI, what practices and techniques are working the best. We're going to use AI to analyze that, and we're going to see what learnings we glean from it and share it with everybody else who's in Gauntlet
+and so thank you for the handful of people who have volunteered for that.
+And yeah, I'm I'm excited about that. So in case it's not clear you're welcome to share
+publicly all of the stuff that you're working on. There are times when we actually require it. Both because it's cool to share and because
+interaction with the real world and the other people building AI is the way that you learn how to build with AI right now, I think you know. Compare it again to the
+Homebrew Computer Club days.
+the way that you learn how to use a computer was like hanging out with other people using computers. There wasn't, you know, there weren't schools. There weren't handbooks. So we're doing our best to build a school and build, you know, curriculum. But we know that we won't have all of it.
+Alright guys.
+yeah. If you have questions to me about like we, we gotta we gotta get moving on. If you have questions about any of the specifics feel free to to message me.
+the curriculum that we're working on consists of 2 parts, and we're going to be kind of repeating this process over and over again. So we have the speed build. And that's you're gonna get your 1st speed build today. And that's learning how to build stuff really quickly with AI. And then there's the AI evolution, which is taking stuff that only AI is capable of and layering it into the products that we're building.
+And then when you're submitting a product in the A project in the platform, there are 4 things that it consists of. One is a link to to the application which will be production quality deployed. One is a link to your code which will be Github. One is a link to the brain list that you've used, and we'll talk more about that in. I think it's Wednesday. And then a video walkthrough of the product
+that you built. That's posted on X. Why? X, because X is basically where all of the AI discussion that's meaningful. And all the AI learning happens and learning in public is an important part of building with AI right now.
+And that's that's it. I'm gonna spend some time going through some of this other stuff.
+And if you have any questions, feel free to reach out to me, and I'm going to turn the time over to our instructors. And with that we're jumping right into our 1st lesson.
+Aaron Gallant
+Aaron Gallant
+00:42:08
+Great. Well, thank you so much, Austin. So my name is Aaron Gallant, and
+I will be your instructor for the sort of regular initial sessions on Monday and Wednesday, where we'll be going over core topics in the AI space, the skills and tools you need to do the things we're asking you to do
+so today. That means AI 1st development. And
+so in the interest of time, let's just jump right in.
+Oh, well, I I'll do it as I have the slides up, though.
+Assume that
+my desktop is up so because I am juggling a lot of windows and sharing stuff. I will not try to monitor the zoom chat during lecture. Just so, you know. I will have an eye on the slack chat so
+so that can be a play that can be a place to ask questions, and I will see.
+But what is AI 1st development? So
+Austin already motivated us a bit. But the idea is is to use these modern generative machine learning tools as the sort of core
+engine of our development process. And I'm going to note that I will tend to use language like Llms and generative. Ml. I will use those terms more than terms like AI. It's not because I don't think there's any such thing as AI. It's because Llm. And generative Ml. Are more specific. They are what we are actually using. AI.
+Well, that's philosophical, and we can get to that at some future point if we ever have time.
+As I already mentioned, during class
+there will be a slack thread, and I'll go ahead and even make
+I guess we'll just use the all
+gauntlet AI Channel here, so I will make a question thread, my eyes will be in this question. Thread.
+Now I will not necessarily answer every single question that is asked during lecture. There are also other staff who are watching, and especially if it's a logistical or policy question.
+then you can expect an answer from somebody else. Most likely my focus is, of course, on the lecture material
+and the the topics at hand.
+So you'll be tagged. You all probably know how to use slack or similar tools. So the main thing I'd emphasize is, if you have a question, ask it like we are here to help, so don't hesitate about asking
+alright. What are our goals today? And this is something also important to our learning methodology here. For for people who are potentially new to that, we set out the learning objectives, and these are things that we want you to get from this from this material. So at the end, you can use this to sort of check your own understanding
+and refer back to it. Study it, you know, if there's a part that you didn't quite catch, that can be a good clue where you need to study. So
+we are going to learn about how the AI 1st methodology helps you ship that. And we're gonna do so with an actual, somewhat well, not somewhat real world example. So ask, our head of product
+had to put together an initial Lms. For Gauntlet in short order, and so, of course, he used a bunch of Llm tools, and we're going to step through
+the process that you did, and you will end up
+in the near future, actually using
+and having access to the output of all this.
+want to talk about a few of the particular sort of best of class tools in this space. But I do want to emphasize, as Austin also basically alluded to. This is such a fast changing space that you know it. There's there's a lot of likelihood that during the gauntlet program some new Llm tool will launch. That's probably actually pretty good, and might be better than something that came before it. So it's it's
+we will offer tools and workflows, but it's not necessarily the end. All be all. Yeah, I see the question on on replet replet is definitely a contender, too. We just we didn't show replet, because we only have about an hour for the lecture. But you know there's
+not necessarily objectively best tools here. Use the tools that work for you. Of course there are the tools that we will be providing you that we're paying for. So there's that aspect of it. And cursor in particular, I think, is still somewhat uniquely positioned. But we'll get to that
+and we'll talk a little bit about chain of thought and some basic prompt engineering
+and really prompt engineering. I mean, part of what's so cool about Llms is that you can just give them natural language and get results and getting to getting good at that.
+Even though it might not feel like am I really into? No, you're that that counts. I mean, it's it's a little bit of a dark magic sometimes, but that definitely counts as
+a legitimate and important technique and one worth understanding. So
+all right, paradigm shift here. So traditionally, how do you develop code? Well, I imagine you all know this. You've all done this in some way. You perhaps start
+with some templates, maybe, or you just start with that good old blank editor.
+and you write code right?
+And then, somewhat recently, there are these chat
+agents like, say, Chat Gpt. 3. Right? That is good enough, that, hey? Instead of maybe looking up stuff in your documentation or searching stack overflow. You talk to this chat, Bot, that
+it's kind of like talking to
+stack overflow sometimes when you're doing this, and it gives you things.
+Now, it has some limitations. Right? It's it's a lot of copy pasting.
+And it only has the context that you give it in those prompts and a a a recurring, you're gonna hear me talk about context and context window a lot throughout this course. And that's because that's like, that's
+the input of the actual machine learning model. That is the Llm that matters so much. And you want to have. If you're not. If you don't come. I come from a data science machine learning. So I might take some of this language a little bit for granted. If you don't come from that background. That's okay. But you want to build a mental model where you see Llms as a predictive statistical model. Basically, that's what they are over the natural language distribution of tokens.
+such. And you know the input matters a lot. And because when you're just chatting, it only has what you give it. It doesn't know other things that I mean it. It knows what it's trained on, in a sense, but it doesn't have access to your whole, it doesn't have all the context that you.
+You'll see that in this moment.
+So that's where AI 1st development is gonna is is a change. Right. We are using some different tools that via a variety of clever things.
+we won't have time to dig into the full details of how it all works, but there's lots of resources for that. But as an example, it doesn't just shove the entire code base in the context window all the time. I mean, there are Llms that are big enough that you might be able to do that. But you wouldn't really want to. That would be expensive and slow.
+Instead, it uses various tricks. There's repo maps that let you sort of structurally understand a repository. It's similar to what ids have had for a long time where they can link symbols across files right like, oh, this was at this import is from here, and this was defined there.
+So it can you can understand the structure of files. And then Intel, and you can also potentially have a a vector database of your code base. And all this is happening automatically. This is kind of like the magic the cursor is doing for you. Cursor is doing these sorts of things, so that when you interact with
+the Llm.
+It has appropriate context and this might not sound like a lot, but it makes a huge difference. It it changes instead of you still kind of writing most of the code and just using chat as like a somewhat more convenient stack. Overflow
+you are, even when you're writing code. Your code is like implicitly a prompt for more code.
+and you will end up spending most of your time in cursor, hitting tab and reading code. At least that's what I do right. And then like editing things here and there, and you still, you still need to be engaged. It's still work, and you will. But you read more than you.
+And so that's why it's sort of more like a care program.
+all right to the tech stacks that work best with Llms. I'm going to defer that question to anybody who wants to answer that question with their own experience in the thread. There's so many options out there. I will say I've been impressed with cursor personally, because cursor is the main tool. That doesn't just do green. Of course we're doing green field today, and it's great and a lot of what you're doing. You're starting projects
+from scratch but you know, I I'm often working with existing code and cursor works pretty well.
+Alright.
+So
+a little bit about why, this matters for the overall journey here? Well, we're asking you to do a lot of stuff. Gauntlet is essentially you building a lot of projects like there's there's obviously we provide support and instruction. But the gauntlet part of it is you making things and being able to make things efficiently now I,
+people can differ here. But I would say, You know, there, there's the the somewhat infamous motto, move fast, break things right.
+I would say with with generative Ml, you want you don't want to move fast, break things. You want to move fast, make things like you just want to actually make a prototype get to that part because any developer knows you get to the part where you actually have a running prototype, and there's a sort of flywheel. You have a fast feedback loop, and you're doing something, and it gives. And you get information from having done that, and you do the next thing, and it gets better and better and better.
+You want to get to that point
+fast, and that's what these tools will enable.
+So
+we are going to step through. As I said, the building of the Lms, you will be Lms. Sorry for dropping so many acronyms learning management system.
+It's content management system for educational stuff.
+It's not the most complicated, crazy thing ever, but it's actually a pretty important piece of what we're doing. And it's also it's an industry in its own right. There are companies that make money.
+So to build our learning management system.
+We're going to
+the goal is something that has authentication, user management. And of course, sort of content management. The main goal is you're going to use this to access slides and recordings and other other resources. Things like that, right?
+And also submit stuff right? So we want to step through the the
+basically what Ash did using Llms chatting with them to
+get the code that you need to get the plan 1st and then to get code and then iterate on the code.
+So that's another thing. And that's why I said, move fast, make things not move fast, break things, because even though the goal is to move fast, you still want to plan
+you. It's still worth.
+you know, at least 5 or 10 min thinking about what you're doing, writing it down and writing it down with the help of an Llm. Because that's what we're doing. You can use an Llm. As a sort of brainstorm Buddy. And in this case it really is just a chat interface. Llm.
+And the output from this would be something like a Prv project requirements document which I imagine you'll likely
+But even when you want to move fast you still need to plan. There's a saying in academia about how
+months in the laboratory can save you hours in the library. Right? So you want to spend that little bit of time planning and understanding what you're doing. And what can you
+so to plan with Llms. And I'm gonna have to tab out here in a sec
+we're going to make a structured prd, that will be input for we're going to show V 0, which is a tool from Purcell. That
+helps you build trunks but there are others in this space as we've discussed.
+and one of the main techniques you'll see in the prompting in this chat session is chain of thought prompting where we basically
+ask the Llm. To think through what it's doing. And and it might seem funny. It might seem like.
+Why does it like. When you ask a personal question, it doesn't necessarily ask matter if you say, Make sure you think that through. And maybe it does. But this sort of approach, though.
+is very effective with a lot of Llms. And is one of the parts of prompt engineering because it essentially encourages the Llm. To the base intuition I get is to sort of spend more tokens, to spend a little bit more of its own time, possibly activating more parameters and getting to the tail ends of whatever probability distributions it needs to to give you the best out.
+It also makes the output pretty literate and easy for you to see and review and iterate on if you need.
+So let's see here.
+I guess. Yeah. A few more slides before you to the example. So a few more details here. When do you want to break down prompts like that? Well, basically, when it's a really complex task like, make a whole lms, you might want to break if you I'm sure you could ask an Llm. To, hey? Describe, make a Prd to make a whole Lms. Like you could. You could give it a simple, prompt like that, and it would give you something that looks awesome.
+Llms are great at giving things that look plausible. That is exactly what they are trained in tune for, but you want things that are good, and that means in this case breaking it down.
+So it is sequential
+and has pieces that logically correspond to the pieces. You actually care about the pieces that will actually have to be built things like that.
+And again, this is when you when it matters, and in this case, because this output is going to be then fed to another. Llm. It does matter you know, if if you blindly, without really
+quality checking the output from one Llm. Continue to feed that to another Llm.
+The randomness of Llms. Might steer you farther and farther off course.
+And here's a few example chains. So
+I'm going to leave this for reference, because I think just keep an eye on the time. How much more we have to go through?
+Add, you can see, I think, the the general idea here you give it a overall goal.
+but then you break it out into different steps and you ask it for each of these steps individually.
+And you are involved. That's the point here. You can. Of course you could. While you're doing this you could start by brainstorming and chat with the Llm. Saying, hey? I want to make a you know. Verification loop.
+What would you suggest? Is the steps and you could see the output from that, maybe use that yourself. But, you want to be engaged in this. This is not something to just
+throw and trust that the element will do it correctly.
+So
+spending tokens. Well, I'm being a little bit loose, I'll admit. But what I essentially mean is that you're putting more a a token
+kind of means word. Technically, it's not exactly a word. It depends a little bit on the language model.
+but it means that we're just pushing.
+When you ask an Llm. To think through this, you'll often notice that the response is more structured and verbose.
+right like, instead of just directly answering the question, it will
+say, Okay, well, to do this, I need to blog blah blah, right?
+And that structure, because
+an Llm is a next token predictor. It is. It is giving you that next word based on the previous words, structuring the output, such that it has, that has those words as part of the output can
+increase the quality and reliability of what comes next can basically make it better.
+So spending tokens the short of it is well, literally spending money literally pushing more words, more text through your
+through your model and having a larger cloud bill. So that's literally what you're doing.
+But the hope is is that you're doing it in a way that increases the quality care about.
+Alright, so yes, I see that our. Our is already on the actual prompt here. So let's go ahead and get to that.
+So here to make the prd
+and ask, I'll let you. Yeah, ash is fielding the question for why he framed this prompt this way. I'll just.
+Ash Tilawat
+Ash Tilawat
+01:01:02
+Aaron, the easy answer is, cause. I used to be a technical product manager. So I probably said that.
+Aaron Gallant
+Aaron Gallant
+01:01:07
+Yeah, yeah, you know. Do do what you know. Right? That's that's totally fair.
+But you'll see here the structure of this prompt, though, illustrates a lot of the things I was just talking about. It's breaking things down step by step, and I imagine this is not the very 1st prompt that Ash wrote to do this. I imagine that Ash himself iterated a little, although it's written a lot of prompts, so probably didn't take him that prize. But you know, writing a prompt like this might take some iteration, some planning on your part.
+And you know you break down
+the the user types, their their goals. And you can see, like, what are we aiming at? We're aiming at user stories. As a
+student, I need to, whatever right? Why and then how the system will essentially facilitate that. So you know, Tpm, type stuff, or some sort of people.
+and then
+also kind of very basic prompt engineering. But this is all. This is a pretty good practice. You almost always want to tell
+the language model what you want, tell it structure of the outcome
+right? And in this case we want bullet points. We want clear and straightforward sentences. And so that's what we get.
+And that facilitates our review that facilitates potentially giving it to another tool, that kind of thing.
+So not gonna read all of this, you have this link. By the way, it's in the slides. So you can definitely review all this as you'd like.
+then the next step, though, is okay. Well, this is a lot of user stories. Let's take the top 3 user stories for each role.
+And then what do we need? What are the data models? Right? And then also telling it. Hey? This is what we're using
+and language models trained on new enough Internet. It knows what we're talking about. And again, this helps it know the sort of output that's expected.
+And again, think step by step.
+and, by the way, you'll notice we'll pay some of these prompts into Claude. Different language models will behave different.
+The things step by step. In the case of Chat gpt
+might still be doing something, but clearly the this part of it say output, you know. Concise, blah blah! That's stopping the chat gpt from actually.
+at least quote thinking out loud, it's not giving. It's it's out loud step by step, whereas Chat, whereas Claude, although we can just paste the same prompt into cloud right now.
+It's probabilistic! The 1st time I did this. It actually did think through a little bit more@firstst In this case
+it thought through a little bit, said, Let me break this down.
+you're gonna get varied responses sometimes, like you're going to get different models, different invocations of the same model out to the
+yeah. I'll go back to the 1st time I did this. You don't think I'm crazy.
+Yeah, it's been a while playing with it.
+So yeah, it thought about this step by step, and it
+sort of iterated the steps in order for all of them, and then asked if it wanted me if it if if I wanted to elaborate on user stories, right?
+So as opposed to immediately structuring the user stories
+individually, let's go back to the current one, though. So
+alright. So we were here. So we were at top 3 user stories. And
+now we ask it for data models. And it gives
+at least rudimentary data models. This isn't exactly a create table statement. But this is
+enough structure that if we needed to
+vercel or something, we could probably get a structured schema. V. 0, I should say we could get a a more structured scheme out of this. It indicates what the keys are, things like that. And you know the top level entities we need. We can look through. Yeah, it looks about right. Users, courses, materials.
+enrollments. If anything. This Lms is right. Now, there's only one course at Gauntlet. You're all enrolled. This is thinking, though, hey? You could have multiple courses and not everybody's going to be enrolled in that course. So you need to talk that relationship.
+that kind of thing.
+And this is still output. It's even giving the functionality requirements.
+And what clerk will do
+and now we're asking it to define Api endpoints. So how? What the actual back end will need to do, based on this data model based on the needed functionality. And so it's a list of Api endpoints.
+And again all of this was
+originally asked, chatting with an Llm. To rapidly iterate, you know, not starting himself writing code writing plans, but getting this sort of technical planning document
+with an Lla.
+And I think you get the idea of this one. Is there anything at the end that we need to look at
+looks alright. We we eventually even get to like Mvp. Launch requirements. That's how you know
+you did what you needed. So.
+Now, of course, if there's output that you should be reading the output of your of your element.
+and if there's something that you want to change. Just tell the Llm. Just say, Hey, actually, you know.
+I only want the top 5 Mvp. Launch requirements. Can you, you know, refactor it and make make it more concise that way, or something like that.
+But for now we will move to the next step and do a quick check on questions. I think they've been answered by other people.
+I had the concise version of Claude. Yeah, there are other versions of Claude, too. Yeah, you're right. I mean there's a whole
+drop down.
+Yeah. Sonnet versus
+Yeah.
+Alright. So back to the slides for a moment.
+So you have. You've done your plan, and you did your planning with your brainstorm, Buddy.
+which could be Chat Gpt, or Claude, or whoever
+next you need to generate the prototype. And what you want to do. You can't just copy paste this entire like, if you copy pasted all of this into
+d 0, you probably wouldn't really get the best out again. There is. There is some human labor to be done
+ultimately. Kind of a good thing. That's why there are jobs at the right
+but you want to find the actionable chunks you want to look through and feed these portions to be 0. It's sort of similar to the idea of chain of thought. Right? But you're breaking down these chunks. And while I'm saying this, by the way, I want to emphasize, I sort of alluded to this earlier. This is just one way of doing this. This is not necessarily the end. All be all way of doing this. If you find a workflow with these tools that works for you.
+That's fine. You don't have to ask permission to do things differently, but the principles to take away from this are that you? You want to understand what the language models can do, and then critically, what they can't necessarily do or what they are weaker.
+and make sure that your workflow accounts for
+so we're going to end up doing few shot code generation. So it's another prompt engineering thing probably already know that few shot basically means give it some examples in the case of V 0, it's basically part of the the ui and flow is that you give it components and patterns and stuff that you want it to use. It's it's a, it's a front end development tool. And so it's going to sort of speak that language and know what you.
+And then, once you get it, V, 0 itself provides tooling to iterate. So we'll scroll. This session is also linked.
+Yeah, right here.
+So you can scroll through this yourself. So I will again take a somewhat quick pass in the interest of time, but feel free to
+be more thorough yourself later. And and again, if when you're being more thorough later you have questions you want to ask them in the slack.
+That's fine slack is also, you know, and anytime Async sort of thing.
+So that'll be a recurring theme. Here we have an hour to lecture, but you're working more than an hour. You will need to spend some time on your own study
+thinking as well.
+That's how how schools work.
+So
+where are we starting here? So we're starting selecting the tooling. So Ash already knew what he wanted to use.
+And
+again, look at, look at this prompt. So this is ash here, our hero, I should, I should say me, but I want to give ash credit
+prompting the 0, and speaking from it here, right? Like, create a reusable table component should have filtering available integer values. Search bar like this is not necessarily a a lay person prompt. This is a prompt written by somebody who knows how to speak front end.
+You don't have to be a phone expert
+because you're not actually doing all that. You're not cranking out all this react or anything. You're asking an Llm. To do it. But you need to have a mental model. You need to know the terminology. You need to use it correctly, because
+that's what the language model speaks.
+so anyway, we give it that prompt. And we'll see here. I mean, this is already. By the way, this is this is the output. So here's a here's a visual preview. But for now let's look@thecodefirstst
+So the 1st thing it gave us it gave us.
+Okay, this is a schema, essentially right. You know, it's giving some structure to the data having some mock data that fits that structure or really a function that generates mock data.
+I like that
+having basic table filters. And such, I mean, we're not. Gonna we don't need to read every line of this code
+at the moment. But I mean, you can see an output a lot. Now again, if you were actually
+checking this into a repo, you do want to take the time to at least
+scroll through and inspect everything. Think of it like a code review of a Pr, right? So
+As I said, you're going to spend more time reading code than writing it.
+and you might find things to change, because even if it was a human writing this, there are often implicit assumptions
+or just little subtleties. Right?
+So now you'll notice the output, besides creating these files, explains what the files do. So this is convenient.
+as you want to review it yourself
+and give says what the implementation should provide.
+and it says how you can further customize it. You know you can add columns, change the styling.
+Then apparently what happened next was an error right? And did the ui prompt this automatically? Or did you have to paste this in yourself?
+Ash Tilawat
+Ash Tilawat
+01:12:36
+Yeah, so what happens when you get an error on V 0. And this is the same for replict agent it gives you the logs on the right side, and then you can just click a button to say to transfer it over to the chat window, and then I do adjust that prompt to say where the error was, because if you let it go looking, it'll then just fix the random file that wasn't supposed to be fixed. But yeah, it it just just the button that pops up on the right side that you have to click.
+Aaron Gallant
+Aaron Gallant
+01:13:04
+Yep, yeah, Claude. Cloud artifacts work the same way. When I was running through these prompts with Claude. It was. It started developing stuff. It had an error. It says we have an error. You want me to try to fix it like, yes, please. And hopefully it fixes it
+well, to to see the button. You'd actually have to trigger this chat yourself, which, by the way, you should like you can, and change even the responses. Something. Start your own fresh session.
+you know. Start from whatever prompts you want, and you'll you'll see this pretty quickly
+should be self explanatory, I think?
+So when we said, Revise the code, the Llm.
+Started revising the code to address the error, figures out, okay, we're using all for all weeks.
+Some some picky, variable name or schema mapping thing. We don't need to worry about details at the moment, but it looks like it fixed it so that's nice
+then we're asking for the next feature. So we we are chunking here. We asked it 1st for tables. Now we're gonna ask it for
+sidebar, right. And the sidebar should basically let you navigate between all these
+places, all these parts of the elements.
+And so you can see.
+by the way, there's clearly some prompt engineering that Vercel did on our behalf, because this response here is already kind of thinking out loud.
+So I'm pretty sure that, like.
+you know this, this user prompt is being put into some sort of template that is being sent to the Llm. That is, telling the Llm. How to respond.
+how to give a balance of code and explanation, because the output here always has a very consistent structure of thinking about what it's doing, and then getting code and explaining what the code does. We're not asking it to do. If you wanted to do this with something that wasn't v 0. If you want to just like fire up a vanilla llama
+and try to get it to do something like this. You'd have to do quite a bit of prompt engineering.
+And then we can ask it to move stuff to reorganize things. Right? So it's reorganizing stuff.
+And it will Update the project structure. So it understands that and another update. Let's add a column inside the table, and it can do that. And then each time it's giving you
+the files it modified.
+That takes me to preview for some reason, though.
+But it looks like it does show it does indicate that there is what the diff was. If we navigate. Yeah, show diff.
+Yeah.
+So it looks like it takes a little bit of clicking. There's Ui problems here, and I'm sure V, 0 will probably iterate on their ui again over the next 12 weeks. While you're while you're doing this, V, 0 itself is likely to change.
+But you can navigate to the file that it said that was changed. And you can see the diff, and you can click the little diff indicator, and you can see the actual change. So all these other lines were generated from previous parts of the discussion. But this latest discussion just generated a couple of lines like this right?
+And so again, think of this as code Review, and at least when I do, code reviews, I find breaking it into diffs very helpful
+that way. You know what you should actually be focusing on.
+Alright, update to include project as a type. Sure, yeah, that makes sense.
+Create a page for calendar.
+Great create.
+There's there's a lot. Let's see here.
+I might not just read all of this. Let's
+at this point sort of get to the end preview.
+So this the point is is, this is quick, but this still takes time like a lot of this is out. The prompts are all fairly straightforward, but then you do have to read the output and think about.
+But this is a good example of what we mean when we say, like, you're not writing the code.
+You're you're interacting with an Llm. Right now.
+we're asking for forms. We're asking for a lot of pieces here.
+And oh, yeah, there's another error which again automatically asked it to fix.
+And let's just get to the very end here.
+So there was even an error during deployment. And was this just like running the front end
+ash. What was this last error here? It looks like.
+Ash Tilawat
+Ash Tilawat
+01:17:46
+Yeah. So that was a build error. So with V 0, you can deploy directly to vercel.
+So that was a build error on. When I was trying to compile
+and then so you can actually, when you try to deploy it, bring your builders back and then try to
+fix them as well.
+Aaron Gallant
+Aaron Gallant
+01:18:02
+Yeah, part part of what's nice about v, 0 is the integration with vercel, which is itself a host.
+And so
+yeah, we can feed it back and fix the error. And here is our preview of what we have, and we can navigate it. We can see
+the different components oop.
+Maybe the calendar doesn't go anywhere yet.
+I guess we're using Google Calendar.
+but we can look at the other pieces.
+Ash Tilawat
+Ash Tilawat
+01:18:37
+I I will say sometimes B 0. When you're switching back on versions it will lose itself so sometimes it should have a page, and then it won't.
+Aaron Gallant
+Aaron Gallant
+01:18:47
+Lose track version. It's actually got here in the preview
+and there's even the console
+which we don't need. But I assume right now. But I assume this is where like, when you did the build the deploy error, I assume. Maybe this is where it was also displayed.
+So. What is the ultimate result here? Well, the ultimate result, of course, is this code which you can also then check into a repo, as you probably should after you finish reviewing and making sure it's what you want.
+And so that's step 2 of our overall. AI 1st development step one was the prd.
+What step?
+So we have our scaffold. Step 3. Is iterating, and you know actual development with cursor. So cursor.
+And I already said this at the beginning. Cursor, which is one of the tools you'll be given
+is, in my opinion, somewhat unique in that. It's well suited, not just for making something from scratch, but dumping in a bunch of existing code like this, and understanding that code and helping you iterate on it more effectively and frankly, even if you don't use it like, even if you just use it as if you were using Bs code. But you only use the the tab for smart Llm. Completion that can already potentially be a little bit of a speed up.
+So you almost don't even need to learn anything to use it. But of course you should learn things because there are a few tricks to what it can do that make it more effective to use.
+So the goal, though.
+as I said, is, when you use cursor, it's an editor. It's it looks like Vs code. And this is Css. Global Css. From that project
+that we prototyped in B 0.
+But what we want to do is have cursor complete. Most of what we're doing. We'll start typing and cursor will suggest more code, or we can actually chat
+with an Llm. And ask it to do things and this will, because coding is often very repetitive. This will just speed up
+literally, the mechanical process would be writing.
+So what are some of the things you can do? Well, you can do, command, command or control if you're not on the Mac.
+K for inline generation. So what that means?
+Oh, you can see. By the way, it's already
+yeah, it's already suggesting stuff like even just making
+blank space. And it's something to get used to. You have to sometimes ignore it, because.
+you know, you don't always want it, but it it's pretty clever. It learns very well from what you're doing. And if you start doing stuff that will become part of its context window that it will use to inform what it's going to suggest. So this this gray text here, I guess I'll teach this 1 1st instead of command. K. This is what I was talking about. Magic of Tab. You press tab.
+you get whatever text it's suggested, and if you press tab again.
+you get whatever text it's suggesting.
+and apparently it thinks I, I should use Titilian web font.
+that must be a popular thought. That's probably why it's like statistically suggesting it, I guess. We don't actually want this. We didn't ask for it, so I'll go ahead and get rid of it.
+But for now, though, we'll show
+to generate control. K. And this is like inline generation. And you can see there's there's model options. Stick with the default, for now
+you can save type of model chatter for later lectures and for slack.
+But we could say, you know, follow all
+ordered list elements to be perfect.
+This would be terrible.
+just just to show what you can do. Alright. Yeah, I mean, that's that's a very minimal example. But it shows the ui, and you can see whenever you do this instead of the like tab to complete it, comes up with this green, which is like code, that would be added, kind of like a get diff, and you can either accept it
+or reject it.
+So if you accept it, it becomes or your code.
+If you reject it, of course it doesn't, and you can give it more complicated instructions than that. Obviously, at the same time, the purpose of control. K isn't necessarily to be like, write a complete implementation of whatever because it's with it's in.
+So it's scope. More is like, write a function that does this, or write some Css style that does that
+if you want to do larger things, that's what command L is for, and that takes you over here to the right.
+Now, there's actually a lot going on here. So we'll we'll break this down.
+you'll see. This is the context. So by default. It will assume that whatever file you came from should be in its context.
+and it will even kind of suggest other files that you could include in the context window that might be relevant, right? And it's doing that based on its understanding. Oh, if you click it twice, apparently you can see the file
+right? Get rid of that.
+But it's doing that based on its structural understanding of the repository. So it's like, Okay, you're looking at global Css, what are some related files? And of course, global Css is kind of connected to every file. So
+these suggestions might be kind of almost arbitrary. But often, if you have a very large code base, this will be a good way to see, hey?
+These are the files related to it and clicking it basically says, Hey, send this file along in this prompt as well.
+And then the sort of stuff you can ask. You can ask it to write code. But you can also potentially ask questions. I mean, let's see here, how does the
+globals dot Css file impact the styling sidebar
+of the sidebar
+and toggle.
+and it should be able to give a somewhat literate answer, because.
+it should be able to point out. Now, of course, there's stuff that just impacts everything. So that's the 1st thing.
+But if there's anything in here that impacts those specifically
+which there might even not be.
+yeah, okay, layers and borders and background colors. And so it's breaking down the parts of the code that are showing what's connected across these files. So this is just asking a question. You're not even actually asking it to write. You can, of course, ask it to write code. You'll also see that for each of these you can potentially like copy paste. You can apply this code to your editor.
+So there's a lot that you can do here. I use the chat mostly active chat and ask questions. And another thing here. So sometimes, instead of giving it a specific
+file, you can notice, like, what is the entry point.
+something like that. We'll see how it does with that. And there's this control. So it's if, instead of hitting, enter, you do control
+that will chat with the entire code base.
+So that's potentially a little more expensive. Because it'll probably result in more tokens being sent, although, of course, the way cursor works, you're not necessarily paying per token, but you do have a set number of like high quality chats per month. I I forget their exact pricing model.
+Now, of course, this is the front end app. So I'm not sure exactly what it's gonna say here, a back end app might be a little clearer, but
+it thinks.
+yeah, okay, it identifies it as a next. Js application. And I want to emphasize here. Like all I did.
+I scroll too far. All I did here was, ask, What is the entry point? Naive prop? And I didn't, and just said across the whole code base.
+and it was able to understand, this is next Js layout. Tsx is the route.
+and you know it identifies this as the entry point, which I think is fair.
+And
+again, if this is a back end app. It would probably find the actual like point that starts the
+starts the server. You know that kind of thing.
+so you can ask it to write code. If you ask it to write code, it'll output blocks like this that you can copy over. If you want.
+I'll let you explore that.
+So can you speak to Agent mode? Yeah. So that's that's exactly where I'm going next. So there's other stuff here. There's even something new that I'm not going to show, because it warns you that oh, this is doing experimental. But, bug finder, I guess we're just. I don't search for bugs, and even warns you that this is an experimental.
+expensive, weird feature. So the slightly less new but still very cool feature is agent. And let's use agent. And what we're gonna do here actually is use agent to finish fleshing out
+this because the 1st output from the 0 had a lot of the structure.
+but it did not have a clerk for authorization did not actually have the authorization partner.
+So ash added that by prompting
+and doing it in agent mode. So again, this is on the sidebar, the command, L, sorry. Yeah. Command L. Side of things.
+And we click composer. And there's normal mode.
+But normal mode lets you potentially combine steps and combine files. But what's particularly interesting is agent mode, which is even more autonomous, you can run commands and can do quite a lot. So
+ash! Does this look right to you? Should I add any other context, or just let let it rip.
+Ash Tilawat
+Ash Tilawat
+01:29:10
+No, I cursor agent. I just did like a 0 shot. Prompt very little context. And it just sort of.
+Aaron Gallant
+Aaron Gallant
+01:29:17
+Well, let's let's let's see if lightning strikes twice.
+Ash Tilawat
+Ash Tilawat
+01:29:21
+The the students are saying in the chat, they're like Yolo mode. So I basically yolo mode the cursor.
+Aaron Gallant
+Aaron Gallant
+01:29:28
+Yeah, this is so. Yeah, clerk clerk was yellowed via cursor. And let's see if we can double Yolo.
+Let's at least watch cursor agent do its thing, and you can see again clearly anybody who's done prompt engineering. There's some prompt engineering happening here like this was fed to some sort of template that's called to say, hey, think out loud. Explain what you're doing.
+Look 5 blah blah. So it's it's 1st let me check your structure. So it's looking at our code.
+and then it's it it knows. Hey? This is probably the 1st file I should look@layout.psx. Or I can do, clerk, we're gonna have to install this
+and then it's recommending this command.
+Oh, which I might have to install. Npm in my box here.
+It's just called Nodejs on Fedora or Npm. Probably.
+Well, we may not step through all this, but you'll see this is an important point that while we're waiting for that. It suggests commands. But it isn't going to just run the command.
+Alright, let's hopefully, that gives us Npm.
+so we. And this, this is important, because this is running as you right now. By the way, I happen to be running this inside, I'm actually on a Linux distribution. And I'm running this inside a Vm.
+You might want to consider that sort of containment. When you're using these tools just because it gives you a little bit of
+assurance. If something weird happens, it's not because these tools are going to do anything malicious with intention. It's just bugs, right or just mistakes.
+So okay, got Npm, sure. Go ahead and run. Npm install clerk next. Js.
+looks like it's using cloud sonnet. But there's a dropdown. Here you can select, and after we finish running through this I'll show a little bit more about cursor, how you can customize it. You can customize models. You can use something called cursor rules, which is
+kind of like a system prompt if you're familiar with that from a prompt engineering perspective.
+Alright, this is thinking a while.
+Yeah.
+well, it's not really in our interest to watch something spin. So while this thinks you, you get the idea, it's going to be an interactive session. So the agent mode is powerful. But it's not completely autonomous. It's going to think through things. And then it's gonna say, Hey, I I, we should install clerk. And I, yeah, you're right. You should install clerk right? Yes, and then it's gonna think of something next after that like, oh, then I'm gonna add clerk to this file and add this.
+and you'll see the diffs, and you'll approve and allow that into your editor. And
+but of course, change it if you need to. Right you're essentially you can think of these agents as like very eager and oddly knowledgeable junior engineers who report to you and are always available right? Like they know a lot of stuff, and they're very fast, but they don't always have the judgment. The context of what your project really is. They only have the context. You feed them even with a tool as clever as cursor, that tries to
+essentially figure out the context from your repository, from the surrounding stuff.
+We all know from working in software development that the code itself is not always hold the context, there's context that is just in people's heads for context, that is,
+you know, in some doc or in some discussion
+or whatever. Anyway, it's going to town. It's missing some other module here. So I'm not. I'm not gonna try to fight with setting up a whole node environment for this.
+I don't do a lot of Javascript development, I will confess, but this would definitely speed me up
+if I was going to do that.
+And it is, it is actually adding stuff, even though it's missing some
+imports. So that would be easy enough.
+Ash Tilawat
+Ash Tilawat
+01:34:03
+Aaron, do you want me to just share mine?
+Aaron Gallant
+Aaron Gallant
+01:34:06
+Sure, if you want to do that, you can step through your session.
+Ash Tilawat
+Ash Tilawat
+01:34:10
+Quick one before I know you have to do the project, so I'll do. I'll do a really quick one.
+Aaron Gallant
+Aaron Gallant
+01:34:15
+Yeah, yeah, I was gonna step through the rest. Yeah, run through it, and then I'll I'll show the rest of cursor stuff. And then the project.
+Ash Tilawat
+Ash Tilawat
+01:34:22
+Excuse me.
+So here the clerk modules installed. Then it made the middleware middleware right away.
+There was an error or a warning that was then resolved.
+It created the provider, which then it wrapped
+the sort of main component and the root layout in.
+and then it created the sign in component, which I believe it just used a component out of clerks, one of the components that comes built in.
+And then there was a sign up component.
+And then finally, it just added user to one of my components.
+Then I added the keys, and the agent pretty much did all the task.
+There wasn't really much I did after that sort of ended there
+before we sort of got into class. There.
+Aaron Gallant
+Aaron Gallant
+01:35:12
+Very cool. And by the way, I look more, it actually basically worked for me, too. Those were just lint warnings saying that it was missing certain things, but it actually did still create and suggest a lot of that's the same sort of code.
+So
+so that's a little bit about rapid development iteration. Now, obviously, this is still an editor. This is basically Bs code. You should still be editing code yourself sometime.
+It's not like you never edit code when you're doing this approach to development. But you should definitely take advantage of these aspects of it. The tab completions, as I said, are just like free speed. Once you get used to them.
+and the the L
+to chat with it. The composer with the agent mode to do all sorts of more powerful things. Basically, you can ask it to add features or potentially refactor code bases would be another good use of agent mode
+and then control K. For little in line instructions which I would most often use for just like adding a function or something like that.
+although, honestly, there are lots of times where you can do control. K. But it might even be faster ergonomically to literally just start typing.
+Well, this is a Css file. So we don't really have functions here.
+but you know, to start typing some sort of function.
+And literally, yeah, well, it's already suggesting stuff.
+but literally start typing your function.
+and it will suggest code to come next so that can be faster as well.
+Alright. So back to the slides for a little bit talked about this
+talked about this. You can also, of course, control K to select code. That is something I should show here. So in in addition to just control K, to add stuff, you can select code and hit control K, and then this code will be the context.
+And I can say rename app to
+so grand. I mean, that's kind of silly, but you can see
+that it will just change from, and then you can accept or reject.
+and we'll go ahead and accept. Great
+it has that so that can be another way to use it.
+So you can also customize cursor. So if we go to the settings here
+we can see that there are models. This is the default defaults not bad. There's lots of other models that you can enable and throw at it.
+And multiple models are enabled. Because when you're actually interacting with it, you can select the model you're using here.
+There's more advanced configuration you can do in terms of the features, and and
+it's cutting edge stuff that's happening.
+As you can see, the defaults tend to be very bleeding. Cursor embraces the idea of my cursor itself is iterating quickly and giving us very current things and changing kind of every week.
+And then the other important thing here is rules for AI. So you have an example here. These are the the personal rules. These are global rules. So these will happen for all of your chats if you want your, you know to say you know.
+always output F. 8.
+When writing pythons it that way.
+Always make it. F. 8 compliant
+right? And just tell the Llm. That you all. It might almost do that by default. To be honest, but
+like you're telling the Llm. Hey, this is what I want all the time.
+And then the other thing that you can have are custom rules
+that are project specific, and that is, by making a dot. Cursor rules file in that project, and that'll be picked up automatically.
+And that will give a place to put, you know, maybe project standards or other things that are relevant to that specific development. And there's a whole curated repository of these sorts of things.
+So there are starting points in a bunch of like, if you're doing full stack development, you wanna a scalable go back and
+here is it's not word wrapped. But here is a
+cursor file, right, which is essentially again, a system prompt, telling it
+how to behave, to make a good scalable go back in and what it's doing.
+It looks like there's even some multi-shot examples, few shot examples in here. It's a little hard to tell, because no new lines. But of course that doesn't matter so much to the row. So it is definitely good to look for, to make or look for relevant cursor rules files when you're working on a project to make cursor behavior
+even better.
+And then, yeah, we already stepped through code generation with chat. So
+when you see code you like, you can click, apply, and that'll put it in your in your editor.
+so that is basically it for the slides. Oh, there's 1 other thing that I want to show a little bit from earlier. But the if I go to Claude, the the main flow that ash actually used was Chat, Gpt and V. 0. But Claude, for instance.
+actually
+kind of did both. So Claude has a thing called artifacts, and as I was making the Prd, it basically said, Hey, I said, Hey, make me the actual data models. And it actually made an artifact. It actually made code.
+And for some reason it decided to use prisma, I think.
+and I said, No, do it in sequel.
+And so then it changed it to sequel
+and make me some Nextjs Api routes, and it made the Nextjs Api routes, and then I asked it to iterate on the Api routes, and it made a different version of it. So again, different tools, similar functionality. There's going to be a lot of that. There is not necessarily any objectively best one
+but cloud is definitely worth considering as a tool. It's it's a contender that said.
+while it does have the niceness of like the chat seamlessly going to artifact generation. It doesn't have the seamless like preview deploy thing
+right? And the diff. The diff view actually isn't quite as nice. It's got this versioning thing down here, but it's not telling me what lines it changed
+tradeoffs.
+Alright, I'm gonna check to see if there are any questions.
+what changed most recently about workflow and cursor, I mean, I guess agent mode right agent mode is I I consider that cursor as a whole feel recent to me. Still, I've been doing this for a while, but within cursor agent mode is definitely new and different and pretty cool.
+Alright. So with the time remaining. We're going to talk about the project.
+So and I believe this should already be set for people with the link. So I'm just gonna even drop this.
+It's probably gonna be linked in other places, too. Oh, it's already shared. Thanks.
+So
+the structure of Gauntlet is that you're going to be working on projects, and the 1st week is spent essentially creating a often full stack
+that would potentially be a significant
+amount of work to develop. But you will be accelerated by the power of these tools that we just discussed.
+And so
+what that means is that you will be spending a week in this case trying to make a chat tool, something kind of like slack right? Because these chat tools are the foundation of our, you know, distributed asynchronous workforces in the modern technological era. They they often are the workplace even to places that go back to the office. These are still pretty important.
+and if you're remote, principally this, this is home. So
+how does this? How? What is chat? Genius, then chat? Genius is a project that offers the functionality of slack, but then also will have an avatar that will represent users and enable them to essentially delegate communication, or have much more intelligent auto responses on their behalf.
+So
+a little bit about the structure here, and there'll be time to go over more of the logistics and structure. But this code this will be turned in, I believe via the Lms. But there will, you know, you'll be writing code. There'll be a brain lift that will also be turned in, but more on brain lifts on Wednesday we actually teach
+more about brain lifts. And then a walkthrough and this would say, be like a screen share, a loom type thing
+that you can share that you can publicize X, Linkedin, or whatever else but X and Linkedin are good starting places
+and interacting with the feedback. And what we really want to see is, you know, generate some buzz like, get get people to use it, you know, get people interested get actual users get actual feedback. Iterate on it and and see how far you can take it. You know we're we're giving baseline goals here, but
+the more you go, and if you come up with your own ideas of things to add, that's great. This this is not. Don't see this structure as in any way limited.
+This is meant to be a foundation for what we actually love to see you.
+So what is the 1st week
+on the 1st week you should develop something such as slack as a reference app, and it should have these core features. It should have authentication, real time messaging some sort of way to organize those messages in the channels and Dms
+some way to share files and search. Search the text as well. I would say.
+something, for you know users to have presence and status.
+some sort of threads, and some sort of emoji.
+and that's like baseline. That's kind of that's kind of slack slack has other stuff, right? But that's a lot of of what we use.
+And please do use. AI 1st approaches in doing this. And also it is okay. So cursor itself.
+It looks familiar to you because it's built on Bs code. Right? They didn't start completely from scratch.
+It is okay. If, assuming that the license is compatible with things
+to build on existing projects or to use open source software. However, you see fit.
+Just make sure that you know you actually
+are building on it and making it appropriate for what you're doing.
+But potentially, you know, this is the week one goal. But I will say that if you get through it extra quick you can. You can always add more features you come up with, or even start thinking about the AI objectives
+so week 2. The goal, by the way, at the end of this week on Friday is that you have your you have your chat app right? And it's just a chat app at that point. It doesn't have AI features just developed with it.
+Week 2 you will be adding AI features and the high level goal, again, is this concept of an AI avatar. And what this AI avatar means is something that should be able to represent the user
+act somewhat on their behalf, communicate in this case on their
+and start with text, because these are text tools and the main, what the user provides. The train. The the material you'll have to work with
+for your prompts will be text. But given a prompt
+this avatar should be able to create and send communication on behalf of that user, and it should be automatically informed by content on slack, ie. It's context aware, sort of like you saw with cursor. Right? How cursor is context aware somewhat automatically when I talk to it, and when I ask it to do things.
+And this also should sort of sound like the user should should be prompted and given some information of how to sound like the user to to give it some person
+and the envisioned workflow here. But again you come up with your own ideas. Please add them.
+The the goal is, impress us not do exactly what you say
+but the idea is that when you are away, instead of just like becoming a a blank red dot or white dot, or whatever. Zz
+you can have this as your sort of AI representative that if somebody has a question they can get a response from that avatar so you could send it to send communication, or people could ask it questions and automatically receive a response without your intervention.
+And of course there should probably be a notice like this was sent by
+the avatar, so might not be a hundred percent and double check things later, and all that. But it can potentially be a a way to have something much better than a static away message that actually can handle some some of your business while you answer questions on your behalf.
+and potentially have access to your dms and contacts like that.
+So that's the AI feature. And then the advanced features. If you knock this out. The park
+is to really make it an avatar. What I mean by that is to make it represent the user with voice or video.
+So voice synthesis, is a pretty well established space, and we'll provide more resources on it as we get closer to it. There's a number of product offerings in that area. You often have to give them a few minutes of speaking or something to to make them sound like somebody
+you could potentially have them, you know. Let the user select it to sound like somebody else. But you, you know, having the user sound like themselves, that's themselves would be a good feature to target.
+And then video synthesis is basically the same thing. Just a lot more dimensions and a lot bigger bytes. And there are again services. We link a few of them. Hagen did.
+If you get to this part, they do have free tiers. So start there. But if you are doing, if you're at this level and you're running the limitations there, we want to help you. So let us know, and we'll figure out
+how to unlock whatever resources you need.
+So
+and then the idea is is that this video or voice avatar would match the user and represent them, perhaps even have expressions and gesture.
+and not be too creepy. I mean, that would be the the ultimate goal.
+the cutting edge. Here, if you look at the more impressive. Demos from these services is pretty good, like they. They are somewhat getting out of that creepy valley, making things that look really very especially in smaller windows. Very good.
+It does require a decent amount of information from the user to look like the user. So if it's going to just be based static on the users like single picture, it probably won't be. You won't. Wouldn't be able to make a fully video realistic avatar based on that. But you know what if you figure out a way definitely impress us.
+and if and another way you could do it is well, if we just have the static picture, then we just synthesize the voice, or maybe we go for some more stylized avatar. It doesn't try to be photo stick, but instead tries to be artistic in some way
+that can be a good way to
+to deal with those limitations, but make it not creepy. So
+that's the goals of the project. There's more here in the Doc in terms of resources
+and information you'll need. And of course there will be more lectures where we actually talk about some of the techniques you need to build these features. But already today, we've talked about the AI assisted development. So what you should need to start working on this to start working on the week. One objective. So after this lecture.
+you you should start. It's another hour of the day, and you're gonna be
+all them that you can get to. To implement all these projects. So that should be your initial target. There's some more structure here. So this should also be on your calendar. But there will be a check in already tomorrow.
+No.
+that's Wednesday. I guess you should hopefully hit Mvp. By tomorrow. By Mvp. I mean, like a working chat, something that starts and maybe doesn't even have all the functionality. But at least like has messages and chat.
+and then there'll be a check in on Wednesday.
+and then come actually complete on Friday.
+So that's the schedule that's the goal. For this week. You want to have a working app already tomorrow that gets you to the point where you have those feedback loops, and you can add features, and
+alright,
+Austen Allred
+Austen Allred
+01:52:57
+Yeah, real real quick, you guys.
+sorry. I'm still getting over a cold as Aaron, said the Mvp. We're going to have due tomorrow we'll send you a link to an invite to the Lms. Which is the place you'll be submitting it. You saw we actually decided to rebuild the Lms using AI. So you saw some of the process of doing that. But there's going to be a whole lot of researching and
+figuring stuff out and guess and check, and so use the help channel in slack. We've got tas there. But we're definitely yeah. As mentioned, we're getting thrown in the deep end very intentionally, very quickly. And then, as a
+fun little thing on top of that, we're going to be looking through the Mvps that are submitted. Tomorrow I'm going to, based on the criteria of
+what Austin likes be giving $500 to the coolest Mvp. So that gives you.
+I mean, you know, including sleep time, like 30 h to work on it. So we're intentionally having a quick check in early to see where you get. And that's a good question. I don't. I don't know. Surprise me, I mean, honestly. Look, you're talking 30 h from now. A chat app that works is pretty impressive. So
+yeah, so we'll be giving $500 to whoever stuff is the coolest and then later today, and so get started. Now, you've got a few hours to work on it. And then we'll have Joe, who is one of the founders of I.
+I don't know. He's a spiritual co-founder of Gauntlet, for sure, founder of trilogy, founder of Trilogy University, and he's 1 of the smartest people I've ever met, and so we're really excited to meet him. Yes, and I have not been
+yeah, don't like. Obviously, if you just pull an entire like fully built
+slack. That's probably not what we're looking for.
+But yeah, let's see.
+And yeah, I think you can. You can do what you whatever you want with them. The the goal is to to build the best chat app you can build using AI 1st development. And the 1st turn in point is gonna be in a few hours. It's not too terribly long. Yeah. Then we'll we'll meet Joe later today.
+clearly, the intent here is to throw everybody into the deep end and get building as much as we can as quickly as we can. Obviously there are a lot of AI techniques and practices that are more advanced. That will cover later. So yeah, you're going to. You should have access to
+So let me let me add a disclaimer that I know. I have, like 4 emails of people that have different account issues.
+ignoring those which we will solve. The
+you'll you'll be getting access to an aws account. You should have a cursor pro invite in your inbox. And you'll also be getting github
+the ui can be whatever you want. Brain lifts. We're learning about tomorrow in the morning, and you'll we're not going to pay attention to the brain, lift submission until the end of this week, but.
+Ash Tilawat
+Ash Tilawat
+01:56:49
+I think I think everyone's really worried about deployment. So let me get 1 point across, which is, I want to see a video, demo. So if that's local, that's fine like, I don't want anybody to worry like you should be worried about rebuilding this application and giving it all the functionality that it's required, and taking that over the edge
+deployment should be when we've added the AI features and we're ready to, you know, fully out there and launch this. But right now let's work on Mvp. And get something out there that's really good. And I just want to see a loom video of what's how it's working, what's going on?
+It could even just be on Zoom. You can record yourself.
+Austen Allred
+Austen Allred
+01:57:28
+Yeah, I mean, I will the the 1st project. So the
+the final deadline. So at the end of the week it needs to be deployed, but not for the Mpp.
+Ash Tilawat
+Ash Tilawat
+01:57:38
+Yep, not for tomorrow. That's what I'm saying.
+Austen Allred
+Austen Allred
+01:57:40
+Yeah.
+sound good. Okay? I'm gonna dig through a bunch of questions about access. I mean, you can use whatever you want. We're giving you aws
+for free. So I mean, obviously, if you're doing your own azure stuff, then that's not super expensive.
+So yeah. So we're trying to make the deadlines at 5 Pm. Central, which is why it's kind of the
+It's on the calendar at 3 Pm. Pacific 5 Pm. Central the reason we're doing that is, we're gonna on
+the the final deadline is actually basically midnight on Sunday. But if you submit on Friday, that will give you a chance to make any revisions you need over the weekend. So we're trying to stagger it out so that nobody gets surprised and something isn't up to par, and it's a big shock to everybody. So that's why we're we're doing more required submissions this time than there will be in the future next time. We're not going to have you submit like
+3 or 4 different versions. It'll just be one submission. So yeah, trying to scaffold it a little bit. But yeah, we'll get aws. Invites out here soon. You should have cursor invites. I know I have a bunch of you that have
+X didn't work where X is. Some account will solve those. And
+yeah, vo has a a free tier that's good enough for anything we would be doing. So
+yeah, you can go ahead and slack me
+in. Later on we'll get into a more
+in the future stuff that's like mission critical email is better because it slack. Can get lost in the noise. But for right now just slack is great. Come to me for pretty much anything, and we'll we'll solve it all.
+Okay, we'll see you with Joe in just a little bit.
