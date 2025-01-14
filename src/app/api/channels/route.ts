@@ -5,14 +5,6 @@ import type { NextRequest } from 'next/server';
 
 export async function GET() {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error('Missing Supabase environment variables');
-      return NextResponse.json(
-        { error: 'Configuration error' },
-        { status: 500 }
-      );
-    }
-
     const supabase = createRouteHandlerClient({ cookies });
     const { data: channels, error } = await supabase
       .from('channels')
@@ -39,14 +31,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error('Missing Supabase environment variables');
-      return NextResponse.json(
-        { error: 'Configuration error' },
-        { status: 500 }
-      );
-    }
-
     const supabase = createRouteHandlerClient({ cookies });
     const body = await request.json();
     const { name, description } = body;
