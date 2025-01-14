@@ -20,11 +20,25 @@ export const searchApi = {
           edited_at,
           channel_id,
           sender_id,
+          receiver_id,
           sender:sender_id (
             id,
             username,
             avatar_url,
             created_at
+          ),
+          reactions (
+            id,
+            emoji,
+            user_id,
+            message_id,
+            created_at,
+            user:users (
+              id,
+              username,
+              avatar_url,
+              created_at
+            )
           )
         `)
         .ilike('content', `%${query}%`)
@@ -58,7 +72,8 @@ export const searchApi = {
       // Transform messages to match our expected format
       const transformedMessages = messages?.map(msg => ({
         ...msg,
-        user: msg.sender
+        user: msg.sender,
+        reactions: msg.reactions || []
       })) || []
 
       console.log('Transformed messages:', transformedMessages)

@@ -246,7 +246,10 @@ export function Sidebar() {
           <DialogHeader>
             <DialogTitle>Message {selectedUser?.username}</DialogTitle>
           </DialogHeader>
-          {selectedUser && <DirectMessageDialog recipient={selectedUser} />}
+          {selectedUser && <DirectMessageDialog 
+            recipient={selectedUser} 
+            onClose={() => setSelectedUser(null)} 
+          />}
         </DialogContent>
       </Dialog>
     </div>
