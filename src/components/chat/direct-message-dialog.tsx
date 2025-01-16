@@ -324,8 +324,20 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
 
   // Scroll to bottom when messages load or change
   useEffect(() => {
+    const scrollToBottom = () => {
+      if (scrollAreaRef.current) {
+        const scrollArea = scrollAreaRef.current
+        scrollArea.scrollTop = scrollArea.scrollHeight
+      }
+    }
+
+    // Scroll immediately
     scrollToBottom()
-  }, [messages, scrollToBottom])
+
+    // Also scroll after a short delay to handle dynamic content
+    const timeoutId = setTimeout(scrollToBottom, 100)
+    return () => clearTimeout(timeoutId)
+  }, [messages])
 
   // Scroll to bottom when dialog opens
   useEffect(() => {
@@ -383,157 +395,155 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
           ref={scrollAreaRef}
           className="flex-1"
         >
-          <div className="p-4 h-full flex flex-col justify-end">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex flex-col ${
-                    message.sender_id === user?.id ? 'items-end' : 'items-start'
-                  } w-full`}
-                >
-                  <div className="flex items-start gap-2 max-w-[80%]">
-                    {message.sender_id !== user?.id && (
-                      <Avatar className="h-8 w-8 shrink-0">
-                        {message.user && (
-                          <>
-                            <AvatarImage src={message.user.avatar_url} alt={message.user.username} />
-                            <AvatarFallback>{getInitials(message.user.username)}</AvatarFallback>
-                          </>
-                        )}
-                      </Avatar>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      {message.sender_id !== user?.id && (
-                        <div className="text-sm font-medium mb-1">
-                          {message.user?.username}
-                        </div>
+          <div className="p-4 space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex flex-col ${
+                  message.sender_id === user?.id ? 'items-end' : 'items-start'
+                } w-full`}
+              >
+                <div className="flex items-start gap-2 max-w-[80%]">
+                  {message.sender_id !== user?.id && (
+                    <Avatar className="h-8 w-8 shrink-0">
+                      {message.user && (
+                        <>
+                          <AvatarImage src={message.user.avatar_url} alt={message.user.username} />
+                          <AvatarFallback>{getInitials(message.user.username)}</AvatarFallback>
+                        </>
                       )}
-                      {editingMessage?.id === message.id ? (
-                        <div className="mt-2">
-                          <Input
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            placeholder="Edit your message..."
-                            className="flex-1"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                handleEditMessage()
-                              }
-                              if (e.key === 'Escape') {
-                                setEditingMessage(null)
-                                setEditContent("")
-                              }
+                    </Avatar>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    {message.sender_id !== user?.id && (
+                      <div className="text-sm font-medium mb-1">
+                        {message.user?.username}
+                      </div>
+                    )}
+                    {editingMessage?.id === message.id ? (
+                      <div className="mt-2">
+                        <Input
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          placeholder="Edit your message..."
+                          className="flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault()
+                              handleEditMessage()
+                            }
+                            if (e.key === 'Escape') {
+                              setEditingMessage(null)
+                              setEditContent("")
+                            }
+                          }}
+                        />
+                        <div className="flex justify-end gap-2 mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingMessage(null)
+                              setEditContent("")
                             }}
-                          />
-                          <div className="flex justify-end gap-2 mt-2">
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleEditMessage}
+                            disabled={!editContent.trim() || editContent === message.content}
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="group flex items-start gap-2">
+                        <div
+                          className={`rounded-lg px-4 py-2 break-words ${
+                            message.sender_id === user?.id
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          {formatMessageContent(message.content)}
+                          <div className="text-xs mt-1 opacity-70">
+                            {formatTimestamp(message.created_at)}
+                            {message.edited_at && (
+                              <span className="ml-1">(edited)</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 relative">
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setEditingMessage(null)
-                                setEditContent("")
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowEmojiPicker(message.id)
                               }}
                             >
-                              Cancel
+                              <SmilePlus className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              onClick={handleEditMessage}
-                              disabled={!editContent.trim() || editContent === message.content}
-                            >
-                              Save Changes
-                            </Button>
+                            {message.sender_id === user?.id && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setEditingMessage(message)
+                                      setEditContent(message.content)
+                                    }}
+                                  >
+                                    Edit Message
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                  >
+                                    Delete Message
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </div>
                         </div>
-                      ) : (
-                        <div className="group flex items-start gap-2">
-                          <div
-                            className={`rounded-lg px-4 py-2 break-words ${
-                              message.sender_id === user?.id
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted'
-                            }`}
-                          >
-                            {formatMessageContent(message.content)}
-                            <div className="text-xs mt-1 opacity-70">
-                              {formatTimestamp(message.created_at)}
-                              {message.edited_at && (
-                                <span className="ml-1">(edited)</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 relative">
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setShowEmojiPicker(message.id)
-                                }}
-                              >
-                                <SmilePlus className="h-4 w-4" />
-                              </Button>
-                              {message.sender_id === user?.id && (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={() => {
-                                        setEditingMessage(message)
-                                        setEditContent(message.content)
-                                      }}
-                                    >
-                                      Edit Message
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      className="text-destructive"
-                                      onClick={() => handleDeleteMessage(message.id)}
-                                    >
-                                      Delete Message
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
-                  {message.reactions && message.reactions.length > 0 && (
-                    <div className="flex gap-1 mt-1">
-                      {Array.from(new Set(message.reactions?.map(r => r.emoji) ?? [])).map((emoji) => (
-                        <Button
-                          key={emoji}
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2"
-                          onClick={() => handleAddReaction(message.id, emoji)}
-                        >
-                          <span className="mr-1">{emoji}</span>
-                          <span className="text-xs">
-                            {message.reactions?.filter(r => r.emoji === emoji).length ?? 0}
-                          </span>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+                {message.reactions && message.reactions.length > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {Array.from(new Set(message.reactions?.map(r => r.emoji) ?? [])).map((emoji) => (
+                      <Button
+                        key={emoji}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2"
+                        onClick={() => handleAddReaction(message.id, emoji)}
+                      >
+                        <span className="mr-1">{emoji}</span>
+                        <span className="text-xs">
+                          {message.reactions?.filter(r => r.emoji === emoji).length ?? 0}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t">
+        <div className="border-t p-4 flex-none bg-background">
           <div className="flex items-center gap-2">
             {showFileUpload ? (
               <FileUpload 

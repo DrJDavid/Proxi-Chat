@@ -26,11 +26,15 @@ export const searchApi = {
           channel_id,
           sender_id,
           receiver_id,
-          sender:sender_id (
+          sender:users!sender_id (
             id,
             username,
+            full_name,
             avatar_url,
-            created_at
+            created_at,
+            status,
+            status_message,
+            last_seen
           ),
           reactions (
             id,
@@ -38,11 +42,15 @@ export const searchApi = {
             user_id,
             message_id,
             created_at,
-            user:users (
+            user:users!user_id (
               id,
               username,
+              full_name,
               avatar_url,
-              created_at
+              created_at,
+              status,
+              status_message,
+              last_seen
             )
           )
         `)

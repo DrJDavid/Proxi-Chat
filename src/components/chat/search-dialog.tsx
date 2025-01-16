@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { useDebounce } from 'use-debounce'
 import { searchApi } from '@/lib/api/search'
-import { type Message, type User } from '@/types'
+import { type Message, type User, type Reaction } from '@/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,6 +23,18 @@ import { toast } from 'sonner'
 import { useChannelStore } from '@/store/channel'
 import { useUserStore } from '@/store/user'
 
+// Add formatMessageTimestamp function
+function formatMessageTimestamp(timestamp: string) {
+  const date = new Date(timestamp)
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  })
+}
+
 interface RawSearchResult {
   messages: Array<{
     id: string
@@ -35,8 +47,12 @@ interface RawSearchResult {
     sender: Array<{
       id: string
       username: string
+      full_name?: string
       avatar_url?: string
       created_at: string
+      status?: string
+      status_message?: string
+      last_seen?: string
     }> | null
     reactions?: Array<{
       id: string
@@ -47,41 +63,13 @@ interface RawSearchResult {
       user: Array<{
         id: string
         username: string
+        full_name?: string
         avatar_url?: string
         created_at: string
+        status?: string
+        status_message?: string
+        last_seen?: string
       }>
-    }>
-  }>
-  users: User[]
-}
-
-interface SearchResult {
-  messages: Array<{
-    id: string
-    content: string
-    created_at: string
-    edited_at?: string
-    channel_id?: string
-    sender_id: string
-    receiver_id?: string
-    sender: {
-      id: string
-      username: string
-      avatar_url?: string
-      created_at: string
-    } | null
-    reactions?: Array<{
-      id: string
-      emoji: string
-      user_id: string
-      message_id: string
-      created_at: string
-      user: {
-        id: string
-        username: string
-        avatar_url?: string
-        created_at: string
-      }
     }>
   }>
   users: User[]
@@ -111,31 +99,9 @@ export function SearchDialog() {
     try {
       console.log('Searching for:', searchQuery)
       const rawResults = (await searchApi.search(searchQuery)) as RawSearchResult
-      const results: SearchResult = {
-        messages: rawResults.messages.map(msg => ({
-          id: msg.id,
-          content: msg.content,
-          created_at: msg.created_at,
-          edited_at: msg.edited_at || undefined,
-          channel_id: msg.channel_id,
-          sender_id: msg.sender_id,
-          receiver_id: msg.receiver_id,
-          sender: msg.sender?.[0] || null,
-          reactions: msg.reactions?.map(r => ({
-            id: r.id,
-            emoji: r.emoji,
-            user_id: r.user_id,
-            message_id: r.message_id,
-            created_at: r.created_at,
-            user: r.user[0]
-          }))
-        })),
-        users: rawResults.users
-      }
-      console.log('Search results:', results)
       
       // Transform messages to ensure they have the correct shape
-      const transformedMessages = results.messages.map(msg => {
+      const transformedMessages = rawResults.messages.map(msg => {
         const message: Message = {
           id: msg.id,
           content: msg.content,
@@ -144,36 +110,47 @@ export function SearchDialog() {
           channel_id: msg.channel_id,
           sender_id: msg.sender_id,
           receiver_id: msg.receiver_id,
-          user: msg.sender ? {
-            id: msg.sender.id,
-            username: msg.sender.username,
-            avatar_url: msg.sender.avatar_url,
-            created_at: msg.sender.created_at
+          user: msg.sender?.[0] ? {
+            id: msg.sender[0].id,
+            username: msg.sender[0].username,
+            email: '',
+            full_name: msg.sender[0].full_name,
+            avatar_url: msg.sender[0].avatar_url,
+            created_at: msg.sender[0].created_at,
+            status: (msg.sender[0].status || 'offline') as 'online' | 'offline' | 'away',
+            status_message: msg.sender[0].status_message,
+            last_seen: msg.sender[0].last_seen
           } : undefined,
-          reactions: msg.reactions?.map(r => ({
-            id: r.id,
-            emoji: r.emoji,
-            user_id: r.user_id,
-            message_id: r.message_id,
-            created_at: r.created_at,
-            user: {
-              id: r.user.id,
-              username: r.user.username,
-              avatar_url: r.user.avatar_url,
-              created_at: r.user.created_at
+          reactions: (msg.reactions?.map(r => {
+            if (!r.user?.[0]) return null
+            return {
+              id: r.id,
+              emoji: r.emoji,
+              user_id: r.user_id,
+              message_id: r.message_id,
+              created_at: r.created_at,
+              user: {
+                id: r.user[0].id,
+                username: r.user[0].username,
+                email: '',
+                full_name: r.user[0].full_name,
+                avatar_url: r.user[0].avatar_url,
+                created_at: r.user[0].created_at,
+                status: (r.user[0].status || 'offline') as 'online' | 'offline' | 'away',
+                status_message: r.user[0].status_message,
+                last_seen: r.user[0].last_seen
+              }
             }
-          })) || []
+          }).filter(Boolean) as Reaction[]) || []
         }
         return message
       })
 
       setMessages(transformedMessages)
-      setUsers(results.users)
+      setUsers(rawResults.users)
     } catch (error) {
-      console.error('Search failed:', error)
-      setMessages([])
-      setUsers([])
-      toast.error('Search failed')
+      console.error('Search error:', error)
+      toast.error('Failed to search')
     } finally {
       setIsSearching(false)
     }
@@ -225,7 +202,21 @@ export function SearchDialog() {
         return
       }
 
-      router.push(`/chat/channels/${channel.name}#message-${message.id}`)
+      // Navigate to the channel
+      await router.push(`/chat/channels/${channel.name}`)
+      
+      // After navigation completes, wait for the messages to load and then scroll
+      setTimeout(() => {
+        const messageElement = document.getElementById(`message-${message.id}`)
+        if (messageElement) {
+          messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Add a temporary highlight effect
+          messageElement.classList.add('bg-accent/50')
+          setTimeout(() => {
+            messageElement.classList.remove('bg-accent/50')
+          }, 2000)
+        }
+      }, 1000) // Increased timeout to allow for messages to load
     } catch (error) {
       console.error('Error handling message click:', error)
       toast.error('Failed to navigate to message')
@@ -278,22 +269,38 @@ export function SearchDialog() {
                         ) : null
                         const channel = !isDM ? channels.find(c => c.id === message.channel_id) : null
                         
+                        // Get display name for sender
+                        const senderDisplayName = message.user?.full_name || message.user?.username || 'Unknown User'
+                        // Get display name for other user in DM
+                        const otherUserDisplayName = otherUser?.full_name || otherUser?.username || 'Unknown User'
+                        
                         return (
                           <Button
                             key={message.id}
                             variant="ghost"
-                            className="w-full justify-start rounded-lg hover:bg-accent"
+                            className="w-full justify-start rounded-lg hover:bg-accent px-4 py-2"
                             onClick={() => handleMessageClick(message)}
                           >
-                            <div className="flex flex-col items-start gap-1 text-left w-full">
-                              <div className="text-xs text-muted-foreground">
-                                {isDM ? (
-                                  <>DM with {otherUser?.username || 'Unknown User'}</>
-                                ) : (
-                                  <>#{channel?.name || 'unknown-channel'}</>
+                            <div className="flex flex-col gap-1 w-full">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">{senderDisplayName}</span>
+                                <span>
+                                  {isDM ? (
+                                    <>in DM with {otherUserDisplayName}</>
+                                  ) : (
+                                    <>in #{channel?.name || 'unknown-channel'}</>
+                                  )}
+                                </span>
+                                <span>•</span>
+                                <span>{formatMessageTimestamp(message.created_at)}</span>
+                                {message.edited_at && (
+                                  <>
+                                    <span>•</span>
+                                    <span>(edited)</span>
+                                  </>
                                 )}
                               </div>
-                              <div className="text-sm truncate w-full">{message.content}</div>
+                              <div className="text-sm">{message.content}</div>
                             </div>
                           </Button>
                         )

@@ -106,12 +106,22 @@ export function ChannelMessages() {
     return () => clearInterval(intervalId)
   }, [selectedChannel, fetchMessages])
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom on new messages or channel change
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+    const scrollToBottom = () => {
+      if (scrollAreaRef.current) {
+        const scrollArea = scrollAreaRef.current
+        scrollArea.scrollTop = scrollArea.scrollHeight
+      }
     }
-  }, [messages])
+
+    // Scroll on messages change
+    scrollToBottom()
+
+    // Also scroll after a short delay to handle dynamic content
+    const timeoutId = setTimeout(scrollToBottom, 100)
+    return () => clearTimeout(timeoutId)
+  }, [messages, selectedChannel?.id])
 
   const handleSendMessage = async () => {
     if (!messageContent.trim() || !user || !selectedChannel) return
@@ -218,167 +228,14 @@ export function ChannelMessages() {
 
   return (
     <div className="flex-1 flex">
-      <div className="flex-1 flex flex-col">
-        <div className="border-b px-4 py-2">
+      <div className="flex-1 flex flex-col h-[calc(100vh-4rem)]">
+        <div className="border-b px-4 py-2 flex-none">
           <h2 className="font-semibold">#{selectedChannel?.name}</h2>
           <p className="text-sm text-muted-foreground">{selectedChannel?.description}</p>
         </div>
 
-        <div className="flex-1 flex flex-col">
-          <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-            {error && (
-              <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-            
-            {isInitialLoading && messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">Loading messages...</p>
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <p className="text-muted-foreground">No messages yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Start the conversation by sending a message</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <div key={message.id} className="group flex gap-2">
-                    <Avatar className="h-8 w-8 mt-0.5 flex-shrink-0">
-                      <AvatarImage src={message.user?.avatar_url} alt={message.user?.username} />
-                      <AvatarFallback>{message.user?.username ? getInitials(message.user.username) : '??'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{message.user?.username}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatTimestamp(message.created_at)}
-                          {message.edited_at && (
-                            <span className="ml-1">(edited)</span>
-                          )}
-                        </span>
-                        {message.sender_id === user?.id && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditingMessage(message)
-                                  setEditContent(message.content)
-                                }}
-                              >
-                                Edit Message
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="text-destructive"
-                                onClick={async () => {
-                                  if (!confirm('Are you sure you want to delete this message?')) return
-
-                                  try {
-                                    await messageApi.deleteMessage(message.id)
-                                    await fetchMessages()
-                                    toast.success('Message deleted')
-                                  } catch (error) {
-                                    console.error('Error deleting message:', error)
-                                    toast.error(error instanceof Error ? error.message : 'Failed to delete message')
-                                  }
-                                }}
-                              >
-                                Delete Message
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                        <div className="flex-1" />
-                      </div>
-                      {editingMessage?.id === message.id ? (
-                        <div className="mt-2">
-                          <RichTextInput
-                            value={editContent}
-                            onChange={setEditContent}
-                            onSubmit={handleEditMessage}
-                            placeholder="Edit your message..."
-                          />
-                          <div className="flex justify-end gap-2 mt-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEditingMessage(null)
-                                setEditContent("")
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={handleEditMessage}
-                              disabled={!editContent.trim() || editContent === message.content}
-                            >
-                              Save Changes
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <MessageContent content={message.content} />
-                      )}
-                      
-                      {/* Message Actions */}
-                      <div className="flex items-center gap-2 mt-2">
-                        {/* Reactions */}
-                        {message.reactions?.map((reaction, index) => (
-                          <Button
-                            key={`${reaction.emoji}-${index}`}
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2"
-                            onClick={() => handleReaction(message.id, reaction.emoji)}
-                          >
-                            <span className="mr-1">{reaction.emoji}</span>
-                            <span className="text-xs">
-                              {message.reactions?.filter(r => r.emoji === reaction.emoji).length}
-                            </span>
-                          </Button>
-                        ))}
-                        
-                        {/* Add Reaction Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 opacity-0 group-hover:opacity-100"
-                          onClick={() => setShowEmojiPicker(message.id)}
-                        >
-                          <SmilePlus className="h-4 w-4" />
-                        </Button>
-
-                        {/* Thread Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 opacity-0 group-hover:opacity-100"
-                          onClick={() => setThreadMessage(message)}
-                        >
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          {message.reply_count || ''}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-
-          <div className="p-4 border-t">
+        <div className="flex flex-col-reverse flex-1 overflow-hidden">
+          <div className="border-t p-4 flex-none bg-background">
             <RichTextInput 
               value={messageContent}
               onChange={setMessageContent}
@@ -386,6 +243,168 @@ export function ChannelMessages() {
               placeholder="Type a message..."
             />
           </div>
+
+          <ScrollArea 
+            ref={scrollAreaRef} 
+            className="flex-1"
+          >
+            <div className="p-4 flex flex-col-reverse">
+              {error && (
+                <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+              
+              {isInitialLoading && messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-muted-foreground">Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <p className="text-muted-foreground">No messages yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Start the conversation by sending a message</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {[...messages].reverse().map((message) => (
+                    <div 
+                      key={message.id} 
+                      id={`message-${message.id}`}
+                      className="group flex gap-2 transition-colors duration-300"
+                    >
+                      <Avatar className="h-8 w-8 mt-0.5 flex-shrink-0">
+                        <AvatarImage src={message.user?.avatar_url} alt={message.user?.username} />
+                        <AvatarFallback>{message.user?.username ? getInitials(message.user.username) : '??'}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{message.user?.username}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatTimestamp(message.created_at)}
+                            {message.edited_at && (
+                              <span className="ml-1">(edited)</span>
+                            )}
+                          </span>
+                          {message.sender_id === user?.id && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditingMessage(message)
+                                    setEditContent(message.content)
+                                  }}
+                                >
+                                  Edit Message
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="text-destructive"
+                                  onClick={async () => {
+                                    if (!confirm('Are you sure you want to delete this message?')) return
+
+                                    try {
+                                      await messageApi.deleteMessage(message.id)
+                                      await fetchMessages()
+                                      toast.success('Message deleted')
+                                    } catch (error) {
+                                      console.error('Error deleting message:', error)
+                                      toast.error(error instanceof Error ? error.message : 'Failed to delete message')
+                                    }
+                                  }}
+                                >
+                                  Delete Message
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                          <div className="flex-1" />
+                        </div>
+                        {editingMessage?.id === message.id ? (
+                          <div className="mt-2">
+                            <RichTextInput
+                              value={editContent}
+                              onChange={setEditContent}
+                              onSubmit={handleEditMessage}
+                              placeholder="Edit your message..."
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingMessage(null)
+                                  setEditContent("")
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={handleEditMessage}
+                                disabled={!editContent.trim() || editContent === message.content}
+                              >
+                                Save Changes
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <MessageContent content={message.content} />
+                        )}
+                        
+                        {/* Message Actions */}
+                        <div className="flex items-center gap-2 mt-2">
+                          {/* Reactions */}
+                          {message.reactions?.map((reaction, index) => (
+                            <Button
+                              key={`${reaction.emoji}-${index}`}
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2"
+                              onClick={() => handleReaction(message.id, reaction.emoji)}
+                            >
+                              <span className="mr-1">{reaction.emoji}</span>
+                              <span className="text-xs">
+                                {message.reactions?.filter(r => r.emoji === reaction.emoji).length}
+                              </span>
+                            </Button>
+                          ))}
+                          
+                          {/* Add Reaction Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 opacity-0 group-hover:opacity-100"
+                            onClick={() => setShowEmojiPicker(message.id)}
+                          >
+                            <SmilePlus className="h-4 w-4" />
+                          </Button>
+
+                          {/* Thread Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 opacity-0 group-hover:opacity-100"
+                            onClick={() => setThreadMessage(message)}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-1" />
+                            {message.reply_count || ''}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </div>
       </div>
 
@@ -400,9 +419,10 @@ export function ChannelMessages() {
       <EmojiPickerDialog
         open={showEmojiPicker !== null}
         onOpenChange={(open) => setShowEmojiPicker(open ? showEmojiPicker : null)}
-        onEmojiSelect={(emoji) => {
+        onEmojiSelect={(emoji: string) => {
           if (showEmojiPicker) {
             handleReaction(showEmojiPicker, emoji)
+            setShowEmojiPicker(null)
           }
         }}
       />
