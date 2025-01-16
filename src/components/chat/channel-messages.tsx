@@ -14,7 +14,10 @@ import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { MoreHorizontal, MessageSquare, SmilePlus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { EmojiPicker } from '@/components/ui/emoji-picker'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+import { useTheme } from 'next-themes'
 import { MessageThread } from './MessageThread'
 
 function formatTimestamp(date: string) {
@@ -50,6 +53,7 @@ export function ChannelMessages() {
   const { selectedChannel } = useChannelStore()
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const lastFetchRef = useRef<number>(0)
+  const { theme } = useTheme()
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChannel) return
@@ -257,27 +261,14 @@ export function ChannelMessages() {
                         ))}
                         
                         {/* Add Reaction Button */}
-                        <div className="relative">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 opacity-0 group-hover:opacity-100"
-                            onClick={() => setShowEmojiPicker(message.id)}
-                          >
-                            <SmilePlus className="h-4 w-4" />
-                          </Button>
-                          {showEmojiPicker === message.id && (
-                            <div className="absolute bottom-full mb-2 z-50">
-                              <EmojiPicker
-                                onEmojiSelect={(emoji) => {
-                                  handleReaction(message.id, emoji)
-                                  setShowEmojiPicker(null)
-                                }}
-                                onClickOutside={() => setShowEmojiPicker(null)}
-                              />
-                            </div>
-                          )}
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 opacity-0 group-hover:opacity-100"
+                          onClick={() => setShowEmojiPicker(message.id)}
+                        >
+                          <SmilePlus className="h-4 w-4" />
+                        </Button>
 
                         {/* Thread Button */}
                         <Button
@@ -315,6 +306,23 @@ export function ChannelMessages() {
           onReply={fetchMessages}
         />
       )}
+
+      <Dialog open={showEmojiPicker !== null} onOpenChange={() => setShowEmojiPicker(null)}>
+        <DialogContent className="p-0 border-none">
+          <Picker
+            data={data}
+            onEmojiSelect={(emoji: { native: string }) => {
+              if (showEmojiPicker) {
+                handleReaction(showEmojiPicker, emoji.native)
+                setShowEmojiPicker(null)
+              }
+            }}
+            theme={theme === 'dark' ? 'dark' : 'light'}
+            previewPosition="none"
+            skinTonePosition="none"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 
