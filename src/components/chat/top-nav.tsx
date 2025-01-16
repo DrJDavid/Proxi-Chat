@@ -28,6 +28,7 @@ import { toast } from 'sonner'
 import supabase from '@/lib/supabase/client'
 import { userApi } from '@/lib/api/users'
 import { SearchDialog } from '@/components/chat/search-dialog'
+import { AvatarUploadDialog } from '@/components/chat/avatar-upload-dialog'
 import {
   Tooltip,
   TooltipContent,
@@ -40,10 +41,10 @@ export function TopNav() {
   const { theme, setTheme } = useTheme()
   const { currentUser: user, setCurrentUser } = useUserStore()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false)
   const [displayName, setDisplayName] = useState(user?.username || '')
   const [status, setStatus] = useState(user?.status_message || '')
   const [isUpdating, setIsUpdating] = useState(false)
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   if (!user) return null
 
@@ -121,98 +122,6 @@ export function TopNav() {
       } else {
         toast.error('Failed to update status')
       }
-    }
-  }
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setIsUploadingAvatar(true)
-    try {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('File size must be less than 5MB')
-      }
-
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('File must be an image (JPEG, PNG, or GIF)')
-      }
-
-      // Check if user is authenticated
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) throw sessionError
-      if (!session) throw new Error('Not authenticated')
-
-      const fileExt = file.type.split('/')[1]
-      const fileName = `${user!.id}.${fileExt}` // Simplified file name
-
-      console.log('Starting avatar upload:', { fileName, fileType: file.type, fileSize: file.size })
-
-      // Upload the file
-      const { error: uploadError, data: uploadData } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        })
-
-      if (uploadError) {
-        console.error('Error uploading file:', uploadError)
-        throw uploadError
-      }
-
-      console.log('File uploaded successfully:', uploadData)
-
-      // Get the public URL with cache-busting query parameter
-      const timestamp = Date.now()
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName)
-      const urlWithTimestamp = `${publicUrl}?t=${timestamp}`
-
-      console.log('Generated public URL:', urlWithTimestamp)
-
-      // Update user profile with new avatar URL
-      const { data: userData, error: updateError } = await supabase
-        .from('users')
-        .update({ avatar_url: urlWithTimestamp })
-        .eq('id', user!.id)
-        .select()
-        .single()
-
-      if (updateError) {
-        console.error('Error updating user profile:', updateError)
-        // Clean up uploaded file if profile update fails
-        await supabase.storage
-          .from('avatars')
-          .remove([fileName])
-        throw updateError
-      }
-
-      console.log('User profile updated with new avatar:', userData)
-
-      // Update global state
-      if (userData) {
-        setCurrentUser(userData)
-        // Force a refresh of the users list
-        await userApi.fetchUsers()
-      }
-
-      toast.success('Avatar updated successfully')
-    } catch (error) {
-      console.error('Error in avatar upload process:', error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Failed to upload avatar')
-      }
-    } finally {
-      setIsUploadingAvatar(false)
-      // Clear the file input
-      e.target.value = ''
     }
   }
 
@@ -310,18 +219,9 @@ export function TopNav() {
               <Settings className="mr-2 h-4 w-4" />
               Change Display Name
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <label className="flex items-center cursor-pointer">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Avatar
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarUpload}
-                  disabled={isUploadingAvatar}
-                />
-              </label>
+            <DropdownMenuItem onClick={() => setIsAvatarDialogOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Avatar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
@@ -365,6 +265,11 @@ export function TopNav() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AvatarUploadDialog
+        open={isAvatarDialogOpen}
+        onOpenChange={setIsAvatarDialogOpen}
+      />
     </div>
   )
 } 

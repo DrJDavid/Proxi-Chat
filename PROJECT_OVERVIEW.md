@@ -3,11 +3,13 @@
 ## Stack Breakdown
 
 ### Frontend Framework
+
 - Next.js 15.1.4 (App Router)
 - React 18
 - TypeScript 5
 
 ### UI Layer
+
 - Tailwind CSS (Styling)
 - shadcn/ui (Component Library)
 - Radix UI (Primitive Components)
@@ -16,11 +18,13 @@
 - class-variance-authority (Component Variants)
 
 ### State Management
+
 - Zustand (Global State)
 - React Hooks (Local State)
 - next-themes (Theme State)
 
 ### Backend & Data
+
 - Supabase (Backend as a Service)
   - Authentication
   - Database
@@ -28,12 +32,14 @@
 - PostgreSQL (Database)
 
 ### Data Fetching
+
 - Custom Polling Implementation
 - Supabase Client
 
 ## Database Schema
 
 ### Users Table
+
 ```sql
 CREATE TABLE users (
     id UUID REFERENCES auth.users PRIMARY KEY,
@@ -46,6 +52,7 @@ CREATE TABLE users (
 ```
 
 ### Channels Table
+
 ```sql
 CREATE TABLE channels (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -57,6 +64,7 @@ CREATE TABLE channels (
 ```
 
 ### Messages Table
+
 ```sql
 CREATE TABLE messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -75,6 +83,7 @@ CREATE TABLE messages (
 ```
 
 ### Attachments Table
+
 ```sql
 CREATE TABLE attachments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -85,6 +94,7 @@ CREATE TABLE attachments (
 ```
 
 ### Reactions Table
+
 ```sql
 CREATE TABLE reactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -100,6 +110,7 @@ CREATE TABLE reactions (
 ## Dependencies
 
 ### Production Dependencies
+
 ```json
 {
   "@radix-ui/react-avatar": "^1.0.4",
@@ -124,6 +135,7 @@ CREATE TABLE reactions (
 ```
 
 ### Development Dependencies
+
 ```json
 {
   "@types/node": "^20",
@@ -141,11 +153,13 @@ CREATE TABLE reactions (
 ## Component Architecture
 
 ### Layout Components
+
 - `RootLayout`: Base layout with providers
 - `ChatLayout`: Layout for chat interface
 - `AuthLayout`: Layout for authentication pages
 
 ### Core Components
+
 - `TopNav`: Main navigation with user menu
 - `Sidebar`: Channel and DM navigation
 - `ChannelPage`: Main chat interface
@@ -153,6 +167,7 @@ CREATE TABLE reactions (
 - `MessageInput`: Message composition
 
 ### UI Components (shadcn/ui)
+
 - Avatar
 - Button
 - Dialog
@@ -162,9 +177,8 @@ CREATE TABLE reactions (
 - Toast
 - Tooltip
 
-## State Management
-
 ### Zustand Stores
+
 - `useMessagesStore`: Message state and operations
 - More stores planned for:
   - User presence
@@ -172,6 +186,7 @@ CREATE TABLE reactions (
   - Typing indicators
 
 ### Authentication State
+
 - Handled by Supabase Auth
 - Protected routes via middleware
 - User session management
@@ -179,6 +194,7 @@ CREATE TABLE reactions (
 ## Current Features
 
 ### Implemented
+
 - ✅ Authentication (Login/Register)
 - ✅ Channel-based chat UI
 - ✅ Message composition
@@ -188,12 +204,14 @@ CREATE TABLE reactions (
 - ✅ Avatar system with fallbacks
 
 ### In Progress
+
 - 🔄 Real-time message updates
 - 🔄 User presence system
 - 🔄 Message persistence
 - 🔄 Channel management
 
 ### Planned
+
 - ⏳ File attachments
 - ⏳ Emoji reactions
 - ⏳ Message threading
@@ -204,6 +222,7 @@ CREATE TABLE reactions (
 - ⏳ User settings
 
 ## Performance Considerations
+
 1. Message pagination
 2. Optimistic updates
 3. Debounced polling
@@ -211,6 +230,7 @@ CREATE TABLE reactions (
 5. Component code splitting
 
 ## Security Measures
+
 1. Row Level Security in Supabase
 2. Protected API routes
 3. Input sanitization
@@ -218,6 +238,7 @@ CREATE TABLE reactions (
 5. Content validation
 
 ## Known Issues
+
 1. Authentication error handling needs improvement
 2. Message polling needs optimization
 3. Missing proper error boundaries
@@ -225,26 +246,30 @@ CREATE TABLE reactions (
 5. Missing type definitions for some components
 
 ## Next Steps
+
 1. Implement real message persistence
 2. Add proper error handling
 3. Implement user profiles
 4. Add loading states
-5. Set up proper error boundaries 
+5. Set up proper error boundaries
 
 ## Version Management
 
 ### Core Framework Versions
+
 - Next.js: 15.1.4 (Latest with App Router improvements)
 - React: 18.x (For concurrent features)
 - TypeScript: 5.x (For enhanced type safety)
 
 ### Version Update Policy
+
 - Next.js: Track latest stable version
 - Dependencies: Pin versions for stability
 - Security updates: Applied immediately
 - Major version upgrades: Evaluated for breaking changes
 
 ### Version Constraints
+
 - Next.js >=15.1.4 required for latest App Router features
 - React 18 required for concurrent features
-- TypeScript 5 required for latest type system features 
+- TypeScript 5 required for latest type system features
