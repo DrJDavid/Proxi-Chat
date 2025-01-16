@@ -141,28 +141,15 @@ export function TopNav() {
         throw new Error('File must be an image (JPEG, PNG, or GIF)')
       }
 
+      // Check if user is authenticated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) throw sessionError
+      if (!session) throw new Error('Not authenticated')
+
       const fileExt = file.type.split('/')[1]
-      const fileName = `${user!.id}-${Date.now()}.${fileExt}`
+      const fileName = `${user!.id}.${fileExt}` // Simplified file name
 
       console.log('Starting avatar upload:', { fileName, fileType: file.type, fileSize: file.size })
-
-      // First, try to get the bucket
-      const { error: bucketError } = await supabase
-        .storage
-        .getBucket('avatars')
-
-      if (bucketError) {
-        console.error('Error checking avatars bucket:', bucketError)
-        // If bucket doesn't exist, try to create it
-        if (bucketError.message.includes('does not exist')) {
-          const { error: createError } = await supabase
-            .storage
-            .createBucket('avatars', { public: true })
-          if (createError) throw createError
-        } else {
-          throw bucketError
-        }
-      }
 
       // Upload the file
       const { error: uploadError, data: uploadData } = await supabase.storage
@@ -179,23 +166,29 @@ export function TopNav() {
 
       console.log('File uploaded successfully:', uploadData)
 
-      // Get the public URL
+      // Get the public URL with cache-busting query parameter
+      const timestamp = Date.now()
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName)
+      const urlWithTimestamp = `${publicUrl}?t=${timestamp}`
 
-      console.log('Generated public URL:', publicUrl)
+      console.log('Generated public URL:', urlWithTimestamp)
 
       // Update user profile with new avatar URL
       const { data: userData, error: updateError } = await supabase
         .from('users')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: urlWithTimestamp })
         .eq('id', user!.id)
         .select()
         .single()
 
       if (updateError) {
         console.error('Error updating user profile:', updateError)
+        // Clean up uploaded file if profile update fails
+        await supabase.storage
+          .from('avatars')
+          .remove([fileName])
         throw updateError
       }
 
@@ -218,6 +211,8 @@ export function TopNav() {
       }
     } finally {
       setIsUploadingAvatar(false)
+      // Clear the file input
+      e.target.value = ''
     }
   }
 

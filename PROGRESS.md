@@ -1,98 +1,119 @@
 # ProxiChat Progress Report
 
-## Core Features
+## Core Features Implemented
 
-### Authentication ✅
+### Authentication
 - [x] Supabase Auth integration
-- [x] Login/Signup flows
+- [x] User session management
 - [x] Protected routes
-- [x] Session management
+- [x] User status tracking (online/offline)
 
-### User Management ✅
-- [x] User profiles
-- [x] Display name updates
-- [x] Avatar uploads
-- [x] Online status indicators
-- [x] Custom status messages
-- [x] Last seen tracking
-
-### Channels ✅
-- [x] Channel creation
-- [x] Channel listing
-- [x] Channel joining/leaving
-- [x] Channel editing (for creators)
-- [x] Member count tracking
+### Channels
+- [x] Channel creation with validation
+  - Lowercase letters, numbers, and dashes only
+  - Length limits (2-32 characters)
+  - Unique names enforced
+- [x] Channel listing and navigation
+- [x] Channel membership management
 - [x] Channel descriptions
+- [x] Channel member counts
+- [x] Channel routing by name and ID
 
-### Messaging ✅
-- [x] Real-time message updates (polling)
-- [x] Message editing
+### Messages
+- [x] Real-time message display
+- [x] Message polling (3-second intervals)
+- [x] Rich text input
+  - Bold, italic, underline formatting
+  - Bullet lists
+  - Strikethrough
 - [x] Message deletion
-- [x] Rich text support
-- [x] File attachments
-- [x] Message reactions
-- [x] Reply threads
-- [x] Unread message tracking
-
-### UI/UX ✅
-- [x] Modern design with shadcn/ui
-- [x] Dark/light theme support
-- [x] Responsive layout
+- [x] Optimistic updates
+- [x] Proper error handling
 - [x] Loading states
-- [x] Error handling
+
+### UI/UX
+- [x] Modern, clean interface using shadcn/ui
+- [x] Responsive layout
+- [x] Loading indicators
+- [x] Error messages
+- [x] User avatars
+- [x] Timestamp formatting
+- [x] Form validation feedback
 - [x] Toast notifications
-- [x] Emoji picker
 
-## Technical Implementation
+## Recent Fixes
 
-### Frontend
-- [x] Next.js 14 with App Router
-- [x] TypeScript strict mode
-- [x] Tailwind CSS styling
-- [x] Zustand state management
-- [x] Component organization
-- [x] Type definitions
+### Channel Navigation
+- Fixed UUID validation for channel IDs
+- Improved channel loading logic to try name before ID
+- Added better error handling and messages
+- Fixed routing to use channel names consistently
 
-### Backend
-- [x] Supabase database
-- [x] Storage buckets for files
-- [x] Database schema
-- [x] API routes
-- [x] Error handling
+### Message Display
+- Added proper scroll handling
+- Implemented optimistic updates
+- Added delete confirmation
+- Fixed message formatting
 
-## In Progress 🚧
-- [ ] Real-time subscriptions (currently using polling)
-- [ ] Direct messaging improvements
-- [ ] Group DM support
-- [ ] Message search
-- [ ] User search
+### Error Handling
+- Added detailed error logging
+- Improved error messages for users
+- Added proper session validation
+- Fixed authentication checks
+
+## Upcoming Features
+
+### High Priority
+- [ ] Message reactions
+- [ ] Message threading
+- [ ] File attachments
+- [ ] Channel member list
+- [ ] Direct messages
+
+### Medium Priority
+- [ ] Message editing
 - [ ] Channel categories
-- [ ] Role-based permissions
-- [ ] Rate limiting
+- [ ] User roles and permissions
+- [ ] Channel invites
+- [ ] Search functionality
+
+### Low Priority
+- [ ] Message pinning
+- [ ] Channel archiving
+- [ ] User profiles
+- [ ] Emoji picker
 - [ ] Message formatting preview
 
-## Known Issues 🐛
-1. Avatar URLs sometimes return 406 errors
-2. Channel updates may require page refresh
-3. Message polling can be optimized
-4. Some UI elements need better mobile support
+## Technical Improvements Needed
 
-## Next Steps 🎯
-1. Implement real-time subscriptions
-2. Add message search functionality
-3. Improve mobile responsiveness
-4. Add user roles and permissions
-5. Implement channel categories
-6. Add message formatting preview
+### Performance
+- [ ] Implement proper WebSocket connections
+- [ ] Add message pagination
+- [ ] Optimize re-renders
+- [ ] Add proper caching
 
-## Dependencies
-- Next.js 14
-- TypeScript
-- Supabase
-- Tailwind CSS
-- shadcn/ui
-- Zustand
-- Lucide Icons
-- next-themes
-- sonner (toast notifications)
-- date-fns 
+### Security
+- [ ] Add rate limiting
+- [ ] Implement proper CORS
+- [ ] Add input sanitization
+- [ ] Improve error handling
+
+### Testing
+- [ ] Add unit tests
+- [ ] Add integration tests
+- [ ] Add E2E tests
+- [ ] Add proper error boundary testing
+
+## Known Issues
+1. Channel navigation can be slow due to polling
+2. No offline support
+3. No proper error recovery
+4. Limited message formatting options
+5. No file upload support yet
+
+## Next Steps
+1. Implement message reactions
+2. Add file attachments
+3. Improve channel member management
+4. Add message threading
+5. Implement direct messages 

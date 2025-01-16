@@ -1,11 +1,13 @@
 # ProxiChat Progress Report
 
 ## Project Overview
+
 ProxiChat is a real-time chat application built with Next.js 15.1.4, featuring channel-based communication, user profiles, and modern UI components.
 
 ## Current Status
 
 ### Completed Features
+
 1. **Authentication**
    - ✅ Login/Register pages with email authentication
    - ✅ Protected routes with middleware
@@ -35,6 +37,7 @@ ProxiChat is a real-time chat application built with Next.js 15.1.4, featuring c
    - ✅ Error handling
 
 ### In Progress
+
 1. **Message Features**
    - 🔄 File attachments
    - 🔄 Emoji reactions
@@ -51,6 +54,7 @@ ProxiChat is a real-time chat application built with Next.js 15.1.4, featuring c
    - 🔄 Channel member management
 
 ### Pending
+
 1. **Direct Messages**
    - ⏳ One-on-one messaging
    - ⏳ Group direct messages
@@ -66,6 +70,7 @@ ProxiChat is a real-time chat application built with Next.js 15.1.4, featuring c
 ## Technical Stack
 
 ### Frontend
+
 - Next.js 15.1.4 with App Router
 - TypeScript
 - Tailwind CSS
@@ -74,6 +79,7 @@ ProxiChat is a real-time chat application built with Next.js 15.1.4, featuring c
 - React Hook Form with Zod validation
 
 ### Backend
+
 - Supabase for:
   - Authentication
   - Database
@@ -81,6 +87,7 @@ ProxiChat is a real-time chat application built with Next.js 15.1.4, featuring c
 - PostgreSQL database
 
 ### Database Schema
+
 ```sql
 -- Users table (managed by Supabase Auth)
 create table public.users (
@@ -117,6 +124,7 @@ create table public.messages (
 ```
 
 ## Known Issues
+
 1. Channel creation requires page refresh to update sidebar in some cases
 2. Message polling could be replaced with real-time subscriptions
 3. Need better error handling for network issues
@@ -124,6 +132,7 @@ create table public.messages (
 5. Avatar image 404s need fallback handling
 
 ## Next Steps
+
 1. Implement real-time subscriptions using Supabase
 2. Add message editing and deletion
 3. Implement file uploads for attachments
@@ -131,6 +140,7 @@ create table public.messages (
 5. Improve error boundaries and fallbacks
 
 ## Performance Considerations
+
 1. Replace polling with real-time subscriptions
 2. Implement message pagination
 3. Optimize image loading and caching
@@ -138,6 +148,7 @@ create table public.messages (
 5. Consider implementing infinite scroll
 
 ## Security Measures
+
 1. ✅ Row Level Security in Supabase
 2. ✅ Protected API routes
 3. ✅ Input sanitization
@@ -146,6 +157,7 @@ create table public.messages (
 6. ⏳ Content moderation
 
 ## Dependencies
+
 ```json
 {
   "dependencies": {
@@ -172,4 +184,4 @@ create table public.messages (
     "zustand": "^4.4.7"
   }
 }
-``` 
+```

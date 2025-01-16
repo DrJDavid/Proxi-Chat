@@ -15,19 +15,24 @@ interface RawChannelData {
   member_count: Array<{ count: number }>
 }
 
+async function checkSession() {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError) {
+    console.error('Session error:', sessionError)
+    throw new Error('Authentication failed: ' + sessionError.message)
+  }
+  if (!session?.user) {
+    console.error('No session found')
+    throw new Error('Not authenticated')
+  }
+  return session.user
+}
+
 export const channelApi = {
   async getChannels() {
     console.log('Starting getChannels...')
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      throw sessionError
-    }
-    if (!session?.user) {
-      console.error('No session found')
-      throw new Error('Not authenticated')
-    }
-    console.log('User authenticated:', session.user.id)
+    const user = await checkSession()
+    console.log('User authenticated:', user.id)
 
     const { data, error } = await supabase
       .from('channels')
@@ -44,13 +49,14 @@ export const channelApi = {
 
     if (error) {
       console.error('Database error:', error)
-      throw error
+      throw new Error('Failed to fetch channels: ' + error.message)
     }
     
     console.log('Raw channel data:', data)
     
     if (!data || data.length === 0) {
       console.log('No channels found in database')
+      return []
     }
     
     // Transform the count from { count: number } to just number
@@ -63,7 +69,49 @@ export const channelApi = {
     return transformedChannels as Channel[]
   },
 
+  async getChannelById(id: string) {
+    console.log('Getting channel by ID:', id)
+    await checkSession()
+
+    const { data, error } = await supabase
+      .from('channels')
+      .select(`
+        *,
+        creator:users!created_by(
+          id,
+          username,
+          avatar_url
+        ),
+        member_count:channel_members(count)
+      `)
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      console.error('Error fetching channel by ID:', error)
+      if (error.code === 'PGRST116') {
+        console.log('Channel not found')
+        return null
+      }
+      throw new Error('Failed to fetch channel: ' + error.message)
+    }
+
+    if (!data) {
+      console.log('No data returned for channel')
+      return null
+    }
+
+    console.log('Found channel:', data)
+    return {
+      ...data,
+      member_count: data.member_count[0]?.count || 0
+    } as Channel
+  },
+
   async getChannelByName(name: string) {
+    console.log('Getting channel by name:', name)
+    await checkSession()
+
     const { data, error } = await supabase
       .from('channels')
       .select(`
@@ -79,14 +127,49 @@ export const channelApi = {
       .single()
 
     if (error) {
-      if (error.code === 'PGRST116') return null // Not found
-      throw error
+      console.error('Error fetching channel by name:', error)
+      if (error.code === 'PGRST116') {
+        console.log('Channel not found')
+        return null
+      }
+      throw new Error('Failed to fetch channel: ' + error.message)
     }
 
+    if (!data) {
+      console.log('No data returned for channel')
+      return null
+    }
+
+    console.log('Found channel:', data)
     return {
       ...data,
       member_count: data.member_count[0]?.count || 0
     } as Channel
+  },
+
+  async isChannelMember(channelId: string) {
+    console.log('Checking channel membership for channel:', channelId)
+    const user = await checkSession()
+
+    try {
+      const { count, error } = await supabase
+        .from('channel_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('channel_id', channelId)
+        .eq('user_id', user.id)
+
+      if (error) {
+        console.error('Error checking channel membership:', error)
+        throw new Error('Failed to check channel membership: ' + error.message)
+      }
+
+      const isMember = count !== null && count > 0
+      console.log('Membership check result:', { channelId, userId: user.id, isMember })
+      return isMember
+    } catch (error) {
+      console.error('Error in isChannelMember:', error)
+      throw error
+    }
   },
 
   async createChannel(name: string, description?: string) {
@@ -95,7 +178,8 @@ export const channelApi = {
     if (sessionError) throw sessionError
     if (!session?.user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    // Start a transaction
+    const { data: channel, error: channelError } = await supabase
       .from('channels')
       .insert({
         name,
@@ -113,16 +197,33 @@ export const channelApi = {
       `)
       .single()
 
-    if (error) {
-      if (error.code === '23505') { // Unique violation
+    if (channelError) {
+      if (channelError.code === '23505') { // Unique violation
         throw new Error('A channel with this name already exists')
       }
-      throw error
+      throw channelError
+    }
+
+    // Add creator as a member
+    const { error: memberError } = await supabase
+      .from('channel_members')
+      .insert({
+        channel_id: channel.id,
+        user_id: session.user.id
+      })
+
+    if (memberError) {
+      // If adding member fails, delete the channel
+      await supabase
+        .from('channels')
+        .delete()
+        .eq('id', channel.id)
+      throw memberError
     }
 
     return {
-      ...data,
-      member_count: data.member_count[0]?.count || 0
+      ...channel,
+      member_count: 1 // Creator is the first member
     } as Channel
   },
 
@@ -311,20 +412,6 @@ export const channelApi = {
     }
 
     console.log('Successfully left channel:', channelId)
-  },
-
-  async isChannelMember(channelId: string) {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) throw sessionError
-    if (!session?.user) throw new Error('Not authenticated')
-
-    const { count } = await supabase
-      .from('channel_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('channel_id', channelId)
-      .eq('user_id', session.user.id)
-
-    return count !== null && count > 0
   },
 
   async editChannel(channelId: string, updates: { name?: string; description?: string }) {

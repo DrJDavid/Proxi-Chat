@@ -3,12 +3,14 @@
 ## 1. Document Processing Pipeline
 
 ### Input Handlers
+
 - PDF Parser for slides and documents
 - Text extractor for Zoom transcripts
 - Markdown/Plain text processor
 - Future extensibility for other formats (PPT, DOC, etc.)
 
 ### Document Chunking Strategy
+
 - Chunk size: 512 tokens (adjustable based on testing)
 - Overlap: 50 tokens to maintain context
 - Preserve metadata:
@@ -20,6 +22,7 @@
 ## 2. Vector Storage (Supabase)
 
 ### Database Schema
+
 ```sql
 -- Documents table
 create table documents (
@@ -45,6 +48,7 @@ create index on chunks using ivfflat (embedding vector_cosine_ops);
 ```
 
 ### Embedding Pipeline
+
 - Model: all-MiniLM-L6-v2 (384 dimensions)
 - Batch processing for efficiency
 - Error handling and retry mechanism
@@ -53,6 +57,7 @@ create index on chunks using ivfflat (embedding vector_cosine_ops);
 ## 3. Query Pipeline
 
 ### Query Processing
+
 1. Parse user question
 2. Generate question embedding
 3. Semantic search in Supabase
@@ -60,6 +65,7 @@ create index on chunks using ivfflat (embedding vector_cosine_ops);
 5. Generate response with context
 
 ### Retrieval Strategy
+
 - Top-k retrieval (k=5 initially)
 - Re-ranking based on:
   - Semantic similarity
@@ -69,24 +75,28 @@ create index on chunks using ivfflat (embedding vector_cosine_ops);
 ## 4. Implementation Phases
 
 ### Phase 1: Document Ingestion (Day 1)
+
 - [ ] Set up document processors
 - [ ] Implement chunking logic
 - [ ] Create database tables
 - [ ] Basic document upload UI
 
 ### Phase 2: Embedding Pipeline (Day 1)
+
 - [ ] Finalize embedding implementation
 - [ ] Add batch processing
 - [ ] Implement progress tracking
 - [ ] Add error handling
 
 ### Phase 3: Query System (Day 2)
+
 - [ ] Implement semantic search
 - [ ] Create context assembly
 - [ ] Set up response generation
 - [ ] Build basic query UI
 
 ### Phase 4: Optimization (Day 2)
+
 - [ ] Add caching layer
 - [ ] Implement re-ranking
 - [ ] Optimize chunk size/overlap
@@ -95,18 +105,21 @@ create index on chunks using ivfflat (embedding vector_cosine_ops);
 ## 5. Technical Considerations
 
 ### Performance
+
 - Batch embeddings generation
 - Caching frequently accessed chunks
 - Efficient vector similarity search
 - Background processing for uploads
 
 ### Security
+
 - Document access control
 - API rate limiting
 - Input sanitization
 - Secure file storage
 
 ### Monitoring
+
 - Embedding generation metrics
 - Query performance tracking
 - Error rate monitoring
@@ -128,6 +141,7 @@ create index on chunks using ivfflat (embedding vector_cosine_ops);
 ## 7. API Endpoints
 
 ### Document Management
+
 ```typescript
 POST /api/documents/upload
 POST /api/documents/process
@@ -136,6 +150,7 @@ DELETE /api/documents/:id
 ```
 
 ### Query Interface
+
 ```typescript
 POST /api/query
 GET /api/query/history
@@ -145,18 +160,21 @@ POST /api/query/feedback
 ## 8. Testing Strategy
 
 ### Unit Tests
+
 - Document processing
 - Chunking logic
 - Embedding generation
 - Query processing
 
 ### Integration Tests
+
 - Full upload pipeline
 - Query pipeline
 - Error handling
 - Edge cases
 
 ### Performance Tests
+
 - Large document processing
 - Concurrent queries
 - Vector search performance
@@ -165,13 +183,15 @@ POST /api/query/feedback
 ## 9. Future Enhancements
 
 ### Short-term
+
 - Hybrid search (keyword + semantic)
 - Document update/versioning
 - Query result caching
 - Feedback incorporation
 
 ### Long-term
+
 - Multi-model support
 - Real-time updates
 - Advanced context assembly
-- Custom embedding training 
+- Custom embedding training
