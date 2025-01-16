@@ -87,7 +87,7 @@ const PERSONA_INFO: Record<PersonaType, { label: string, signature: string }> = 
   expert: { label: 'Expert', signature: '🔬 Technical Expert' },
   casual: { label: 'Casual Guide', signature: '👋 Friendly Guide' },
   mentor: { label: 'Mentor', signature: '🌟 Experienced Mentor' },
-  austinite: { label: 'Austin Local', signature: '🌵 Austin Local' }
+  austinite: { label: 'Matthew McConaughey', signature: '🌵 Alright, alright, alright' }
 };
 
 export function Sidebar() {

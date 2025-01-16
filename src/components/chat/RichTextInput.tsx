@@ -5,9 +5,13 @@ import {
   Italic, 
   Underline, 
   Strikethrough,
-  List
+  List,
+  Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PERSONA_INFO } from '@/components/RagAssistant'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Separator } from '@/components/ui/separator'
 
 interface RichTextInputProps {
   value: string
@@ -133,6 +137,9 @@ export function RichTextInput({ value, onChange, onSubmit, placeholder, classNam
     }
   ]
 
+  // Check if message already has an agent mention
+  const hasAgentMention = Boolean(value.match(/@(teacher|student|expert|casual|mentor|austinite)\b/))
+
   const handleChange = () => {
     if (editorRef.current) {
       const content = editorRef.current.innerHTML
@@ -159,7 +166,41 @@ export function RichTextInput({ value, onChange, onSubmit, placeholder, classNam
             {button.icon}
           </Button>
         ))}
+
+        <Separator orientation="vertical" className="mx-1 h-6" />
+
+        <TooltipProvider>
+          {Object.entries(PERSONA_INFO).map(([key, { label, signature }]) => (
+            <Tooltip key={key}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-2 px-2"
+                  onClick={() => {
+                    if (hasAgentMention) {
+                      // Replace existing mention
+                      const newValue = value.replace(/@\w+\s/, `@${key} `)
+                      onChange(newValue)
+                    } else {
+                      // Add mention at start if none exists
+                      const prefix = value.length > 0 && !value.startsWith('@') ? ' ' : ''
+                      onChange(`@${key}${prefix}${value}`)
+                    }
+                    editorRef.current?.focus()
+                  }}
+                  disabled={hasAgentMention && value.includes(`@${key}`)}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {signature}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Ask {label}</TooltipContent>
+            </Tooltip>
+          ))}
+        </TooltipProvider>
       </div>
+
       <div
         ref={editorRef}
         contentEditable
@@ -171,6 +212,9 @@ export function RichTextInput({ value, onChange, onSubmit, placeholder, classNam
         onInput={handleChange}
         data-placeholder={placeholder}
         role="textbox"
+        aria-label="Message input"
+        aria-multiline="true"
+        aria-placeholder={placeholder}
         onSelect={() => {
           // Force a re-render to update button states
           editorRef.current?.focus()

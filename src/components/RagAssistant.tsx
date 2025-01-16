@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Send } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import {
   Select,
   SelectContent,
@@ -14,16 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useRagConversation } from '@/lib/hooks/useRagConversation'
+import { type PersonaType } from '@/types/rag'
 
-type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite';
-
-const PERSONA_INFO: Record<PersonaType, { label: string, signature: string }> = {
+export const PERSONA_INFO: Record<PersonaType, { label: string, signature: string }> = {
   teacher: { label: 'Teacher', signature: '📚 Professor Helper' },
   student: { label: 'Student', signature: '🎓 Fellow Learner' },
   expert: { label: 'Expert', signature: '🔬 Technical Expert' },
   casual: { label: 'Casual Guide', signature: '👋 Friendly Guide' },
   mentor: { label: 'Mentor', signature: '🌟 Experienced Mentor' },
-  austinite: { label: 'Austin Local', signature: '🌵 Austin Local' }
+  austinite: { label: 'Matthew McConaughey', signature: '🌵 Alright, alright, alright' }
 };
 
 interface RagAssistantProps {
@@ -53,7 +53,7 @@ export function RagAssistant({ initialPersona = 'casual' }: RagAssistantProps) {
             value={selectedPersona}
             onValueChange={(value: PersonaType) => setSelectedPersona(value)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" suppressHydrationWarning>
               <SelectValue placeholder="Select persona" />
             </SelectTrigger>
             <SelectContent>
@@ -93,9 +93,11 @@ export function RagAssistant({ initialPersona = 'casual' }: RagAssistantProps) {
                     : 'bg-muted mr-4'
                 }`}
               >
-                {message.content}
+                <div className="prose dark:prose-invert prose-sm">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
                 {message.timestamp && (
-                  <div className="text-xs opacity-50 mt-1">
+                  <div className="text-xs opacity-50 mt-1" suppressHydrationWarning>
                     {new Date(message.timestamp).toLocaleTimeString()}
                   </div>
                 )}
@@ -112,15 +114,16 @@ export function RagAssistant({ initialPersona = 'casual' }: RagAssistantProps) {
         )}
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t">
+      <form onSubmit={handleSubmit} className="p-4 border-t" suppressHydrationWarning>
         <div className="flex gap-2">
           <Input
             placeholder="Ask a question..."
             value={input}
             onChange={e => setInput(e.target.value)}
             disabled={isLoading}
+            suppressHydrationWarning
           />
-          <Button type="submit" size="icon" disabled={isLoading}>
+          <Button type="submit" size="icon" disabled={isLoading} suppressHydrationWarning>
             <Send className="h-4 w-4" />
           </Button>
         </div>

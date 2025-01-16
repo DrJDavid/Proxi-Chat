@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { useTheme } from 'next-themes'
+import styles from './emoji-picker.module.css'
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string) => void
@@ -28,8 +29,7 @@ export function EmojiPicker({ onEmojiSelect, onClose }: EmojiPickerProps) {
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-full right-0 mb-2 z-50"
-      style={{ width: '352px' }}
+      className={styles.emojiPickerContainer}
     >
       <Picker
         data={data}

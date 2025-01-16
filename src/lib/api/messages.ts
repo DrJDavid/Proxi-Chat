@@ -115,20 +115,24 @@ export const messageApi = {
     return messages as Message[]
   },
 
-  async sendMessage({ content, channelId, senderId, receiverId, parentMessageId }: {
+  async sendMessage({ content, channelId, senderId, receiverId, parentMessageId, isAgent, agentPersona }: {
     content: string
     channelId?: string
     senderId: string
     receiverId?: string
     parentMessageId?: string
+    isAgent?: boolean
+    agentPersona?: string
   }) {
     const now = new Date().toISOString()
     const messageData = {
       content,
-      channel_id: channelId,
       sender_id: senderId,
-      receiver_id: receiverId,
-      parent_message_id: parentMessageId,
+      ...(channelId && { channel_id: channelId }),
+      ...(receiverId && { receiver_id: receiverId }),
+      ...(parentMessageId && { parent_message_id: parentMessageId }),
+      ...(isAgent && { is_agent: isAgent }),
+      ...(agentPersona && { agent_persona: agentPersona }),
       has_attachment: false,
       created_at: now
     }

@@ -1,0 +1,1 @@
+export type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite'; 

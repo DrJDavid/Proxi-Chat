@@ -16,6 +16,8 @@ import { MoreHorizontal, MessageSquare, SmilePlus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MessageThread } from './MessageThread'
 import { EmojiPickerDialog } from './emoji-picker-dialog'
+import { PERSONA_INFO } from '@/components/RagAssistant'
+import { type PersonaType } from '@/types/rag'
 
 function formatTimestamp(date: string) {
   const messageDate = new Date(date)
@@ -38,6 +40,8 @@ function formatTimestamp(date: string) {
 
   return `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} ${time}`
 }
+
+const AGENT_MENTION_REGEX = /@(teacher|student|expert|casual|mentor|austinite)\b/g
 
 export function ChannelMessages() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -150,6 +154,55 @@ export function ChannelMessages() {
 
       // Update with actual message
       setMessages(prev => prev.map(m => m.id === optimisticMessage.id ? message : m))
+
+      // Check for agent mentions
+      const mentions = messageContent.match(AGENT_MENTION_REGEX)
+      if (mentions) {
+        const uniqueAgents = Array.from(new Set(mentions.map(m => m.slice(1) as PersonaType)))
+        
+        // Have each mentioned agent respond
+        for (const persona of uniqueAgents) {
+          try {
+            console.log(`Requesting response from ${persona} agent...`)
+            const response = await fetch('/api/rag', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                query: messageContent,
+                persona,
+                channelId: selectedChannel.id
+              })
+            })
+
+            const data = await response.json()
+            
+            if (!response.ok) {
+              throw new Error(data.error || `Agent ${persona} failed to respond (${response.status})`)
+            }
+
+            if (!data.answer) {
+              throw new Error(`Invalid response from ${persona} agent`)
+            }
+            
+            console.log(`Got response from ${persona} agent:`, data)
+            
+            // Send agent's response as a new message
+            const agentMessage = await messageApi.sendMessage({
+              content: data.answer,
+              channelId: selectedChannel.id,
+              senderId: user.id,
+              isAgent: true,
+              agentPersona: persona
+            })
+
+            setMessages(prev => [...prev, agentMessage])
+          } catch (error) {
+            console.error(`Error getting response from ${persona}:`, error)
+            const errorMessage = error instanceof Error ? error.message : `${PERSONA_INFO[persona].label} failed to respond`
+            toast.error(errorMessage)
+          }
+        }
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       if (error instanceof Error) {
