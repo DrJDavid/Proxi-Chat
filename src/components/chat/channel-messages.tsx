@@ -18,6 +18,8 @@ import { MessageThread } from './MessageThread'
 import { EmojiPickerDialog } from './emoji-picker-dialog'
 import { PERSONA_INFO } from '@/components/RagAssistant'
 import { type PersonaType } from '@/types/rag'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 
 function formatTimestamp(date: string) {
   const messageDate = new Date(date)
@@ -57,6 +59,7 @@ export function ChannelMessages() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const lastFetchRef = useRef<number>(0)
   const hasLoadedChannelRef = useRef<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChannel) return
@@ -163,7 +166,6 @@ export function ChannelMessages() {
         // Have each mentioned agent respond
         for (const persona of uniqueAgents) {
           try {
-            console.log(`Requesting response from ${persona} agent...`)
             const response = await fetch('/api/rag', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -184,8 +186,6 @@ export function ChannelMessages() {
               throw new Error(`Invalid response from ${persona} agent`)
             }
             
-            console.log(`Got response from ${persona} agent:`, data)
-            
             // Send agent's response as a new message
             const agentMessage = await messageApi.sendMessage({
               content: data.answer,
@@ -197,14 +197,12 @@ export function ChannelMessages() {
 
             setMessages(prev => [...prev, agentMessage])
           } catch (error) {
-            console.error(`Error getting response from ${persona}:`, error)
             const errorMessage = error instanceof Error ? error.message : `${PERSONA_INFO[persona].label} failed to respond`
             toast.error(errorMessage)
           }
         }
       }
     } catch (error) {
-      console.error('Error sending message:', error)
       if (error instanceof Error) {
         toast.error(error.message)
       } else {
@@ -269,6 +267,37 @@ export function ChannelMessages() {
         msg.id === editingMessage.id ? editingMessage : msg
       ))
     }
+  }
+
+  useEffect(() => {
+    const fetchInitialMessages = async () => {
+      try {
+        await fetchMessages()
+      } catch (error) {
+        console.error('Error fetching messages:', error)
+        toast.error('Failed to load messages')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchInitialMessages()
+  }, [selectedChannel?.id, fetchMessages])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 p-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex items-start space-x-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
   }
 
   if (!selectedChannel) {
@@ -480,5 +509,13 @@ export function ChannelMessages() {
         }}
       />
     </div>
+  )
+}
+
+export default function ChannelMessagesWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <ChannelMessages />
+    </ErrorBoundary>
   )
 } 

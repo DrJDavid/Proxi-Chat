@@ -8,9 +8,32 @@ import { type Channel } from '@/types'
 import { JoinChannelButton } from './join-channel-button'
 import { useChannelStore } from '@/store/channel'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
 import { ChannelInfo } from './channel-info'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+
+function ChannelListSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {[...Array(6)].map((_, i) => (
+        <Card key={i} className="cursor-default">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-[150px]" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+            <Skeleton className="h-4 w-[100px] mt-2" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-[80px] mt-2" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
 
 export function ChannelList() {
   const router = useRouter()
@@ -62,11 +85,7 @@ export function ChannelList() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
+    return <ChannelListSkeleton />
   }
 
   return (
@@ -116,5 +135,13 @@ export function ChannelList() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ChannelListWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <ChannelList />
+    </ErrorBoundary>
   )
 } 
