@@ -40,8 +40,33 @@ interface SearchResult {
   similarity: number;
 }
 
-async function generateAnswer(query: string, documents: SearchResult[]) {
-  // Prepare context from documents
+async function generateDirectResponse(query: string) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4-0125-preview',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful AI assistant that can engage in general conversation while also having access to specific document knowledge when needed. Be concise, clear, and helpful in your responses.'
+        },
+        {
+          role: 'user',
+          content: query
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      response_format: { type: "text" }
+    });
+
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error('Error generating direct response:', error);
+    return null;
+  }
+}
+
+async function generateRagResponse(query: string, documents: SearchResult[]) {
   const context = documents
     .map((doc, i) => {
       const source = doc.metadata?.filename || 'Unknown';
@@ -64,7 +89,7 @@ Answer:`;
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that answers questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. Focus on speed and efficiency in your responses.'
+          content: 'You are a helpful assistant that answers questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. If the context is not relevant to the question, say so and provide a general response instead.'
         },
         {
           role: 'user',
@@ -78,7 +103,7 @@ Answer:`;
 
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Error generating answer:', error);
+    console.error('Error generating RAG response:', error);
     return null;
   }
 }
@@ -102,28 +127,35 @@ async function queryDocuments(query: string) {
       return;
     }
 
-    if (!documents || documents.length === 0) {
-      console.log('\nNo relevant documents found.');
-      return;
+    let answer: string | null;
+    let mode: 'rag' | 'direct' = 'direct';
+
+    // Check if we have relevant documents with good similarity
+    if (documents && documents.length > 0 && documents[0].similarity >= 0.5) {
+      console.log('\nFound relevant documents:');
+      documents.forEach((doc: SearchResult, i: number) => {
+        const filename = doc.metadata?.filename || 'Unknown';
+        const chunkInfo = doc.metadata?.chunk_index !== undefined 
+          ? `(chunk ${doc.metadata.chunk_index + 1}/${doc.metadata.total_chunks})` 
+          : '';
+        
+        console.log(`\n--- Result ${i + 1} (${(doc.similarity * 100).toFixed(1)}% similarity) ---`);
+        console.log(`Source: ${filename} ${chunkInfo}`);
+        console.log('Content:', doc.content);
+      });
+
+      console.log('\nGenerating RAG response...');
+      answer = await generateRagResponse(query, documents);
+      mode = 'rag';
+    } else {
+      console.log('\nNo highly relevant documents found, using direct response...');
+      answer = await generateDirectResponse(query);
     }
 
-    console.log('\nRelevant documents found:\n');
-    documents.forEach((doc: SearchResult, i: number) => {
-      const filename = doc.metadata?.filename || 'Unknown';
-      const chunkInfo = doc.metadata?.chunk_index !== undefined 
-        ? `(chunk ${doc.metadata.chunk_index + 1}/${doc.metadata.total_chunks})` 
-        : '';
-      
-      console.log(`\n--- Result ${i + 1} (${(doc.similarity * 100).toFixed(1)}% similarity) ---`);
-      console.log(`Source: ${filename} ${chunkInfo}`);
-      console.log('Content:', doc.content);
-    });
-
-    console.log('\nGenerating answer...');
-    const answer = await generateAnswer(query, documents);
     if (answer) {
       console.log('\n=== Generated Answer ===');
       console.log(answer);
+      console.log(`\n(Response Mode: ${mode})`);
     }
   } catch (error) {
     console.error('Error:', error);

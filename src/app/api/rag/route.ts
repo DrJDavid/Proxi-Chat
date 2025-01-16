@@ -25,7 +25,37 @@ interface SearchResult {
   similarity: number
 }
 
-async function generateAnswer(query: string, documents: SearchResult[]) {
+async function generateDirectResponse(query: string): Promise<string> {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4-0125-preview',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful AI assistant that can engage in general conversation while also having access to specific document knowledge when needed. Be concise, clear, and helpful in your responses.'
+        },
+        {
+          role: 'user',
+          content: query
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      response_format: { type: "text" }
+    })
+
+    const responseContent = completion.choices[0].message.content
+    if (!responseContent) {
+      throw new Error('No response content received from OpenAI')
+    }
+    return responseContent
+  } catch (error) {
+    console.error('Error generating direct response:', error)
+    throw new Error('Failed to generate response from OpenAI')
+  }
+}
+
+async function generateRagResponse(query: string, documents: SearchResult[]): Promise<string> {
   const context = documents
     .map((doc, i) => {
       const source = doc.metadata?.filename || 'Unknown'
@@ -48,7 +78,7 @@ Answer:`
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that answers questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. Focus on speed and efficiency in your responses.'
+          content: 'You are a helpful assistant that answers questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. If the context is not relevant to the question, say so and provide a general response instead.'
         },
         {
           role: 'user',
@@ -60,9 +90,13 @@ Answer:`
       response_format: { type: "text" }
     })
 
-    return completion.choices[0].message.content
+    const responseContent = completion.choices[0].message.content
+    if (!responseContent) {
+      throw new Error('No response content received from OpenAI')
+    }
+    return responseContent
   } catch (error) {
-    console.error('Error generating answer:', error)
+    console.error('Error generating RAG response:', error)
     throw new Error('Failed to generate answer from OpenAI')
   }
 }
@@ -82,6 +116,7 @@ export async function POST(request: Request) {
       )
     }
 
+    // First try to find relevant documents
     console.log('Generating embeddings for query:', query)
     const embedding = await getEmbeddings(query)
     console.log('Embeddings generated, length:', embedding.length)
@@ -105,19 +140,28 @@ export async function POST(request: Request) {
 
     console.log(`Found ${documents?.length || 0} relevant documents`)
 
-    if (!documents || documents.length === 0) {
-      console.log('No relevant documents found')
-      return NextResponse.json(
-        { answer: "I couldn't find any relevant information to answer your question." },
-        { status: 200 }
-      )
+    let answer: string
+    let mode: 'rag' | 'direct' = 'direct'
+
+    // Check if we have relevant documents with good similarity
+    if (documents && documents.length > 0 && documents[0].similarity >= 0.5) {
+      // Use RAG with the relevant documents
+      console.log('Using RAG response with relevant documents')
+      answer = await generateRagResponse(query, documents)
+      mode = 'rag'
+    } else {
+      // Use direct response for general queries or when no relevant docs found
+      console.log('Using direct response for query')
+      answer = await generateDirectResponse(query)
     }
 
-    console.log('Generating answer from documents...')
-    const answer = await generateAnswer(query, documents)
-    console.log('Answer generated successfully')
+    console.log('Response generated successfully')
+    return NextResponse.json({ 
+      answer,
+      mode,
+      similarity: documents?.[0]?.similarity || 0
+    }, { status: 200 })
 
-    return NextResponse.json({ answer }, { status: 200 })
   } catch (error) {
     console.error('Error in API route:', error)
     if (error instanceof Error) {
