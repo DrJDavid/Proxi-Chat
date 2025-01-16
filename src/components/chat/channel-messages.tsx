@@ -12,8 +12,10 @@ import { RichTextInput } from './RichTextInput'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal, MessageSquare, SmilePlus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { EmojiPicker } from '@/components/ui/emoji-picker'
+import { MessageThread } from './MessageThread'
 
 function formatTimestamp(date: string) {
   const messageDate = new Date(date)
@@ -39,13 +41,15 @@ function formatTimestamp(date: string) {
 
 export function ChannelMessages() {
   const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [messageContent, setMessageContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
+  const [threadMessage, setThreadMessage] = useState<Message | null>(null)
   const { user } = useUserStore()
   const { selectedChannel } = useChannelStore()
-  const lastFetchRef = useRef<number>(0)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const lastFetchRef = useRef<number>(0)
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChannel) return
@@ -132,6 +136,26 @@ export function ChannelMessages() {
     }
   }
 
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (!user) return
+
+    try {
+      await messageApi.addReaction({
+        messageId,
+        userId: user.id,
+        emoji
+      })
+      await fetchMessages()
+    } catch (error) {
+      console.error('Error adding reaction:', error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to add reaction')
+      }
+    }
+  }
+
   if (!selectedChannel) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -141,99 +165,156 @@ export function ChannelMessages() {
   }
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="border-b px-4 py-2">
-        <h2 className="font-semibold">#{selectedChannel.name}</h2>
-        <p className="text-sm text-muted-foreground">{selectedChannel.description}</p>
-      </div>
-
+    <div className="flex-1 flex">
       <div className="flex-1 flex flex-col">
-        <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-          {error && (
-            <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-          
-          {isLoading && messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">Loading messages...</p>
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className="flex items-start gap-3 group">
-                  <Avatar className="h-8 w-8">
-                    {message.user?.avatar_url && (
-                      <AvatarImage
-                        src={message.user.avatar_url}
-                        alt={`${message.user.username}'s avatar`}
-                      />
-                    )}
-                    <AvatarFallback>
-                      {message.user?.username ? getInitials(message.user.username) : '??'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{message.user?.username}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTimestamp(message.created_at)}
-                      </span>
-                      {message.user?.id === user?.id && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={async () => {
-                                if (!confirm('Are you sure you want to delete this message?')) return
+        <div className="border-b px-4 py-2">
+          <h2 className="font-semibold">#{selectedChannel?.name}</h2>
+          <p className="text-sm text-muted-foreground">{selectedChannel?.description}</p>
+        </div>
 
-                                try {
-                                  await messageApi.deleteMessage(message.id)
-                                  await fetchMessages()
-                                  toast.success('Message deleted')
-                                } catch (error) {
-                                  console.error('Error deleting message:', error)
-                                  toast.error(error instanceof Error ? error.message : 'Failed to delete message')
-                                }
-                              }}
-                            >
-                              Delete Message
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+        <div className="flex-1 flex flex-col">
+          <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
+            {error && (
+              <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+            
+            {isLoading && messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">Loading messages...</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div key={message.id} className="group flex gap-2">
+                    <Avatar className="h-8 w-8 mt-0.5 flex-shrink-0">
+                      <AvatarImage src={message.user?.avatar_url} alt={message.user?.username} />
+                      <AvatarFallback>{message.user?.username ? getInitials(message.user.username) : '??'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{message.user?.username}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTimestamp(message.created_at)}
+                        </span>
+                        <div className="flex-1" />
+                        {message.sender_id === user?.id && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={async () => {
+                                  if (!confirm('Are you sure you want to delete this message?')) return
+
+                                  try {
+                                    await messageApi.deleteMessage(message.id)
+                                    await fetchMessages()
+                                    toast.success('Message deleted')
+                                  } catch (error) {
+                                    console.error('Error deleting message:', error)
+                                    toast.error(error instanceof Error ? error.message : 'Failed to delete message')
+                                  }
+                                }}
+                              >
+                                Delete Message
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                      <MessageContent content={message.content} />
+                      
+                      {/* Message Actions */}
+                      <div className="flex items-center gap-2 mt-2">
+                        {/* Reactions */}
+                        {message.reactions?.map((reaction, index) => (
+                          <Button
+                            key={`${reaction.emoji}-${index}`}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2"
+                            onClick={() => handleReaction(message.id, reaction.emoji)}
+                          >
+                            <span className="mr-1">{reaction.emoji}</span>
+                            <span className="text-xs">
+                              {message.reactions?.filter(r => r.emoji === reaction.emoji).length}
+                            </span>
+                          </Button>
+                        ))}
+                        
+                        {/* Add Reaction Button */}
+                        <div className="relative">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 opacity-0 group-hover:opacity-100"
+                            onClick={() => setShowEmojiPicker(message.id)}
+                          >
+                            <SmilePlus className="h-4 w-4" />
+                          </Button>
+                          {showEmojiPicker === message.id && (
+                            <div className="absolute bottom-full mb-2 z-50">
+                              <EmojiPicker
+                                onEmojiSelect={(emoji) => {
+                                  handleReaction(message.id, emoji)
+                                  setShowEmojiPicker(null)
+                                }}
+                                onClickOutside={() => setShowEmojiPicker(null)}
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Thread Button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 opacity-0 group-hover:opacity-100"
+                          onClick={() => setThreadMessage(message)}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          {message.reply_count || ''}
+                        </Button>
+                      </div>
                     </div>
-                    <MessageContent content={message.content} />
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
 
-        <div className="p-4 border-t">
-          <RichTextInput 
-            value={messageContent}
-            onChange={setMessageContent}
-            onSubmit={handleSendMessage}
-            placeholder="Type a message..."
-          />
+          <div className="p-4 border-t">
+            <RichTextInput 
+              value={messageContent}
+              onChange={setMessageContent}
+              onSubmit={handleSendMessage}
+              placeholder="Type a message..."
+            />
+          </div>
         </div>
       </div>
+
+      {threadMessage && (
+        <MessageThread
+          message={threadMessage}
+          onClose={() => setThreadMessage(null)}
+          onReply={fetchMessages}
+        />
+      )}
     </div>
   )
 } 
