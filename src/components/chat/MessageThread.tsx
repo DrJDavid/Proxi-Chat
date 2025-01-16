@@ -48,10 +48,11 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
   const [replyContent, setReplyContent] = useState('')
   const [replies, setReplies] = useState<Message[]>([])
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { user } = useUserStore()
   const lastFetchRef = useRef<number>(0)
+  const hasInitialFetchRef = useRef(false)
 
   const fetchReplies = useCallback(async () => {
     // Prevent concurrent fetches
@@ -60,7 +61,6 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
     lastFetchRef.current = now
 
     try {
-      setIsLoading(true)
       setError(null)
       const threadMessages = await messageApi.getThreadMessages(message.id)
       
@@ -71,7 +71,7 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
         }
         return prev
       })
-      
+
       return threadMessages
     } catch (error) {
       console.error('Error fetching replies:', error)
@@ -79,7 +79,10 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
       setError(errorMessage)
       throw error
     } finally {
-      setIsLoading(false)
+      if (!hasInitialFetchRef.current) {
+        setIsInitialLoading(false)
+        hasInitialFetchRef.current = true
+      }
     }
   }, [message.id])
 
@@ -182,13 +185,9 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
             {error}
           </div>
         )}
-        {isLoading && replies.length === 0 && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">Loading replies...</p>
-          </div>
-        )}
+
         <div className="space-y-4">
-          {/* Parent Message */}
+          {/* Original Message */}
           <div className="flex items-start gap-3">
             <Avatar className="h-8 w-8">
               {message.user?.avatar_url && (
@@ -207,141 +206,121 @@ export function MessageThread({ message, onClose, onReply }: MessageThreadProps)
                 <span className="text-xs text-muted-foreground">
                   {formatTimestamp(message.created_at)}
                 </span>
-                {message.user?.id === user?.id && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={async () => {
-                          if (!confirm('Are you sure you want to delete this message?')) return
-
-                          try {
-                            await messageApi.deleteMessage(message.id)
-                            if (onReply) await onReply()
-                            onClose()
-                            toast.success('Message deleted')
-                          } catch (error) {
-                            console.error('Error deleting message:', error)
-                            toast.error(error instanceof Error ? error.message : 'Failed to delete message')
-                          }
-                        }}
-                      >
-                        Delete Message
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
               </div>
               <MessageContent content={message.content} />
             </div>
           </div>
 
-          {/* Replies */}
-          {replies.map((reply) => (
-            <div key={reply.id} className="flex items-start gap-3 pl-6 group">
-              <Avatar className="h-8 w-8">
-                {reply.user?.avatar_url && (
-                  <AvatarImage
-                    src={reply.user.avatar_url}
-                    alt={`${reply.user.username}'s avatar`}
-                  />
-                )}
-                <AvatarFallback>
-                  {reply.user?.username ? getInitials(reply.user.username) : '??'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{reply.user?.username}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatTimestamp(reply.created_at)}
-                  </span>
-                  {reply.user?.id === user?.id && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={async () => {
-                            if (!confirm('Are you sure you want to delete this reply?')) return
-
-                            try {
-                              await messageApi.deleteMessage(reply.id)
-                              await fetchReplies()
-                              if (onReply) await onReply()
-                              toast.success('Reply deleted')
-                            } catch (error) {
-                              console.error('Error deleting reply:', error)
-                              toast.error(error instanceof Error ? error.message : 'Failed to delete reply')
-                            }
-                          }}
-                        >
-                          Delete Reply
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-                <MessageContent content={reply.content} />
-                
-                {/* Reactions */}
-                <div className="flex items-center gap-2 mt-2">
-                  {reply.reactions?.map((reaction, index) => (
-                    <Button
-                      key={`${reaction.emoji}-${index}`}
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2"
-                      onClick={() => handleReaction(reply.id, reaction.emoji)}
-                    >
-                      <span className="mr-1">{reaction.emoji}</span>
-                      <span className="text-xs">
-                        {reply.reactions?.filter(r => r.emoji === reaction.emoji).length}
-                      </span>
-                    </Button>
-                  ))}
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 opacity-0 group-hover:opacity-100"
-                      onClick={() => setShowEmojiPicker(reply.id)}
-                    >
-                      <SmilePlus className="h-4 w-4" />
-                    </Button>
-                    {showEmojiPicker === reply.id && (
-                      <div className="absolute bottom-full mb-2">
-                        <EmojiPicker
-                          onEmojiSelect={(emoji) => {
-                            handleReaction(reply.id, emoji)
-                            setShowEmojiPicker(null)
-                          }}
-                          onClickOutside={() => setShowEmojiPicker(null)}
-                        />
-                      </div>
+          {/* Replies Section */}
+          <div className="pl-6 space-y-4">
+            {isInitialLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-muted-foreground">Loading replies...</p>
+              </div>
+            ) : replies.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-muted-foreground">No replies yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Be the first to reply to this message</p>
+              </div>
+            ) : (
+              replies.map((reply) => (
+                <div key={reply.id} className="flex items-start gap-3 pl-6 group">
+                  <Avatar className="h-8 w-8">
+                    {reply.user?.avatar_url && (
+                      <AvatarImage
+                        src={reply.user.avatar_url}
+                        alt={`${reply.user.username}'s avatar`}
+                      />
                     )}
+                    <AvatarFallback>
+                      {reply.user?.username ? getInitials(reply.user.username) : '??'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{reply.user?.username}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimestamp(reply.created_at)}
+                      </span>
+                      {reply.user?.id === user?.id && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={async () => {
+                                if (!confirm('Are you sure you want to delete this reply?')) return
+
+                                try {
+                                  await messageApi.deleteMessage(reply.id)
+                                  await fetchReplies()
+                                  if (onReply) await onReply()
+                                  toast.success('Reply deleted')
+                                } catch (error) {
+                                  console.error('Error deleting reply:', error)
+                                  toast.error(error instanceof Error ? error.message : 'Failed to delete reply')
+                                }
+                              }}
+                            >
+                              Delete Reply
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                    <MessageContent content={reply.content} />
+                    
+                    {/* Reactions */}
+                    <div className="flex items-center gap-2 mt-2">
+                      {reply.reactions?.map((reaction, index) => (
+                        <Button
+                          key={`${reaction.emoji}-${index}`}
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2"
+                          onClick={() => handleReaction(reply.id, reaction.emoji)}
+                        >
+                          <span className="mr-1">{reaction.emoji}</span>
+                          <span className="text-xs">
+                            {reply.reactions?.filter(r => r.emoji === reaction.emoji).length}
+                          </span>
+                        </Button>
+                      ))}
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 opacity-0 group-hover:opacity-100"
+                          onClick={() => setShowEmojiPicker(reply.id)}
+                        >
+                          <SmilePlus className="h-4 w-4" />
+                        </Button>
+                        {showEmojiPicker === reply.id && (
+                          <div className="absolute bottom-full mb-2">
+                            <EmojiPicker
+                              onEmojiSelect={(emoji) => {
+                                handleReaction(reply.id, emoji)
+                                setShowEmojiPicker(null)
+                              }}
+                              onClickOutside={() => setShowEmojiPicker(null)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              ))
+            )}
+          </div>
         </div>
       </ScrollArea>
 

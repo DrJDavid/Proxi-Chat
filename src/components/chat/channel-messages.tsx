@@ -42,14 +42,17 @@ function formatTimestamp(date: string) {
 export function ChannelMessages() {
   const [messages, setMessages] = useState<Message[]>([])
   const [messageContent, setMessageContent] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
   const [threadMessage, setThreadMessage] = useState<Message | null>(null)
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null)
+  const [editContent, setEditContent] = useState("")
   const { user } = useUserStore()
   const { selectedChannel } = useChannelStore()
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const lastFetchRef = useRef<number>(0)
+  const hasLoadedChannelRef = useRef<string | null>(null)
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChannel) return
@@ -63,27 +66,40 @@ export function ChannelMessages() {
       setError(null)
       const channelMessages = await messageApi.fetchMessages(selectedChannel.id)
       
-      // Only update state if messages have changed
+      // Update state while preserving optimistic updates
       setMessages(prev => {
-        if (JSON.stringify(prev) !== JSON.stringify(channelMessages)) {
-          return channelMessages
-        }
-        return prev
+        const optimisticMessageIds = prev
+          .filter(msg => msg.id.startsWith('temp-') || msg.id === editingMessage?.id)
+          .map(msg => msg.id)
+
+        // Keep optimistic messages, use server data for everything else
+        return channelMessages.map(serverMsg => {
+          const optimisticMsg = prev.find(m => m.id === serverMsg.id)
+          if (optimisticMessageIds.includes(serverMsg.id)) {
+            return optimisticMsg!
+          }
+          return serverMsg
+        })
       })
     } catch (error) {
       console.error('Error fetching messages:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to load messages'
       setError(errorMessage)
     } finally {
-      setIsLoading(false)
+      setIsInitialLoading(false)
     }
-  }, [selectedChannel])
+  }, [selectedChannel, editingMessage])
 
   // Initial fetch and polling
   useEffect(() => {
     if (!selectedChannel) return
 
-    setIsLoading(true)
+    // Only show loading on first load of a channel
+    if (hasLoadedChannelRef.current !== selectedChannel.id) {
+      setIsInitialLoading(true)
+      hasLoadedChannelRef.current = selectedChannel.id
+    }
+    
     fetchMessages()
 
     const intervalId = setInterval(fetchMessages, 3000)
@@ -156,6 +172,42 @@ export function ChannelMessages() {
     }
   }
 
+  const handleEditMessage = async () => {
+    if (!editingMessage || !editContent.trim()) return
+
+    try {
+      // Optimistically update the message
+      setMessages(prev => prev.map(msg => 
+        msg.id === editingMessage.id ? {
+          ...editingMessage,
+          content: editContent.trim(),
+          edited_at: new Date().toISOString()
+        } : msg
+      ))
+      
+      // Reset edit state
+      setEditingMessage(null)
+      setEditContent("")
+
+      // Make the API call
+      const updatedMessage = await messageApi.editMessage(editingMessage.id, editContent.trim())
+      
+      // Update with the server response
+      setMessages(prev => prev.map(msg => 
+        msg.id === editingMessage.id ? updatedMessage : msg
+      ))
+      
+      toast.success('Message updated')
+    } catch (error) {
+      console.error('Error editing message:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to edit message')
+      // Revert to original message on error
+      setMessages(prev => prev.map(msg => 
+        msg.id === editingMessage.id ? editingMessage : msg
+      ))
+    }
+  }
+
   if (!selectedChannel) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -180,13 +232,14 @@ export function ChannelMessages() {
               </div>
             )}
             
-            {isLoading && messages.length === 0 ? (
+            {isInitialLoading && messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-muted-foreground">Loading messages...</p>
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <p className="text-muted-foreground">No messages yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Start the conversation by sending a message</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -201,8 +254,10 @@ export function ChannelMessages() {
                         <span className="font-semibold">{message.user?.username}</span>
                         <span className="text-xs text-muted-foreground">
                           {formatTimestamp(message.created_at)}
+                          {message.edited_at && (
+                            <span className="ml-1">(edited)</span>
+                          )}
                         </span>
-                        <div className="flex-1" />
                         {message.sender_id === user?.id && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -215,6 +270,14 @@ export function ChannelMessages() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingMessage(message)
+                                  setEditContent(message.content)
+                                }}
+                              >
+                                Edit Message
+                              </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-destructive"
                                 onClick={async () => {
@@ -235,8 +298,39 @@ export function ChannelMessages() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
+                        <div className="flex-1" />
                       </div>
-                      <MessageContent content={message.content} />
+                      {editingMessage?.id === message.id ? (
+                        <div className="mt-2">
+                          <RichTextInput
+                            value={editContent}
+                            onChange={setEditContent}
+                            onSubmit={handleEditMessage}
+                            placeholder="Edit your message..."
+                          />
+                          <div className="flex justify-end gap-2 mt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingMessage(null)
+                                setEditContent("")
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleEditMessage}
+                              disabled={!editContent.trim() || editContent === message.content}
+                            >
+                              Save Changes
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <MessageContent content={message.content} />
+                      )}
                       
                       {/* Message Actions */}
                       <div className="flex items-center gap-2 mt-2">
