@@ -1,63 +1,64 @@
 "use client"
 
 import { useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { processDocument } from '@/lib/document-processor';
-import { Button } from './ui/button';
-import { Progress } from './ui/progress';
+import { Button } from '@/components/ui/button';
 
 export function DocumentUpload() {
-  const [processing, setProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    setProcessing(true);
-    setProgress(0);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     try {
-      for (let i = 0; i < acceptedFiles.length; i++) {
-        const file = acceptedFiles[i];
-        await processDocument(file);
-        setProgress(((i + 1) / acceptedFiles.length) * 100);
+      setIsUploading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/process-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process document');
       }
-    } catch (error) {
-      console.error('Error uploading documents:', error);
+
+      const result = await response.json();
+      console.log('Document processed:', result);
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload document');
     } finally {
-      setProcessing(false);
+      setIsUploading(false);
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'text/plain': ['.txt'],
-      'text/markdown': ['.md']
-    }
-  });
-
   return (
-    <div className="w-full max-w-xl mx-auto p-4">
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-          ${isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'}`}
-      >
-        <input {...getInputProps()} />
-        {processing ? (
-          <div className="space-y-4">
-            <p>Processing documents...</p>
-            <Progress value={progress} />
-          </div>
-        ) : (
-          <div>
-            <p>Drag & drop files here, or click to select</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Supports PDF, TXT, and MD files
-            </p>
-          </div>
-        )}
-      </div>
+    <div className="space-y-4">
+      <input
+        type="file"
+        accept=".pdf,.txt"
+        onChange={handleFileChange}
+        disabled={isUploading}
+        className="hidden"
+        id="file-upload"
+      />
+      <label htmlFor="file-upload">
+        <Button
+          disabled={isUploading}
+          className="cursor-pointer"
+          type="button"
+        >
+          {isUploading ? 'Uploading...' : 'Upload Document'}
+        </Button>
+      </label>
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
     </div>
   );
 } 
