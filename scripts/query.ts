@@ -30,6 +30,26 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite';
+
+const PERSONA_PROMPTS: Record<PersonaType, string> = {
+  teacher: 'You are a patient and knowledgeable teacher. Explain concepts clearly, use analogies when helpful, and break down complex topics into digestible pieces. Encourage learning and critical thinking.',
+  student: 'You are a fellow student who has already studied this material. Share your understanding in a relatable way, acknowledge when things are complex, and focus on practical examples and study tips.',
+  expert: 'You are a technical expert with deep knowledge. Provide detailed, precise information with technical depth. Don\'t shy away from complexity, but explain it thoroughly.',
+  casual: 'You are a friendly, approachable guide. Keep explanations simple and conversational, use everyday analogies, and make the content engaging and accessible.',
+  mentor: 'You are an experienced mentor who both teaches and guides. Balance technical accuracy with practical advice, share best practices, and help develop problem-solving skills.',
+  austinite: 'You are a long-time Austin local who knows the city inside and out. Share your deep knowledge of Austin\'s culture, history, neighborhoods, food scene, music, and hidden gems. Use local slang naturally, reference local landmarks, and give authentic insider perspectives. Keep it weird and friendly, just like Austin.'
+};
+
+const PERSONA_SIGNATURES: Record<PersonaType, string> = {
+  teacher: '📚 Professor Helper',
+  student: '🎓 Fellow Learner',
+  expert: '🔬 Technical Expert',
+  casual: '👋 Friendly Guide',
+  mentor: '🌟 Experienced Mentor',
+  austinite: '🌵 Austin Local'
+};
+
 interface SearchResult {
   content: string;
   metadata: {
@@ -40,14 +60,14 @@ interface SearchResult {
   similarity: number;
 }
 
-async function generateDirectResponse(query: string) {
+async function generateDirectResponse(query: string, persona: PersonaType = 'casual') {
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-0125-preview',
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful AI assistant that can engage in general conversation while also having access to specific document knowledge when needed. Be concise, clear, and helpful in your responses.'
+          content: `${PERSONA_PROMPTS[persona]} You can engage in general conversation while also having access to specific document knowledge when needed. Be concise, clear, and helpful in your responses. Sign your response with: "${PERSONA_SIGNATURES[persona]}"`
         },
         {
           role: 'user',
@@ -66,7 +86,7 @@ async function generateDirectResponse(query: string) {
   }
 }
 
-async function generateRagResponse(query: string, documents: SearchResult[]) {
+async function generateRagResponse(query: string, documents: SearchResult[], persona: PersonaType = 'casual') {
   const context = documents
     .map((doc, i) => {
       const source = doc.metadata?.filename || 'Unknown';
@@ -81,7 +101,7 @@ ${context}
 
 Question: ${query}
 
-Answer:`;
+Answer (sign your response with: "${PERSONA_SIGNATURES[persona]}"):`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -89,7 +109,7 @@ Answer:`;
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that answers questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. If the context is not relevant to the question, say so and provide a general response instead.'
+          content: `${PERSONA_PROMPTS[persona]} Answer questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. If the context is not relevant to the question, say so and provide a general response instead. Sign your response with: "${PERSONA_SIGNATURES[persona]}"`
         },
         {
           role: 'user',
@@ -108,7 +128,7 @@ Answer:`;
   }
 }
 
-async function queryDocuments(query: string) {
+async function queryDocuments(query: string, persona: PersonaType) {
   try {
     console.log('\nGenerating embedding for query...');
     const embedding = await getEmbeddings(query);
@@ -145,11 +165,11 @@ async function queryDocuments(query: string) {
       });
 
       console.log('\nGenerating RAG response...');
-      answer = await generateRagResponse(query, documents);
+      answer = await generateRagResponse(query, documents, persona);
       mode = 'rag';
     } else {
       console.log('\nNo highly relevant documents found, using direct response...');
-      answer = await generateDirectResponse(query);
+      answer = await generateDirectResponse(query, persona);
     }
 
     if (answer) {
@@ -162,10 +182,35 @@ async function queryDocuments(query: string) {
   }
 }
 
+async function selectPersona(): Promise<PersonaType> {
+  console.log('\nAvailable personas:');
+  Object.entries(PERSONA_SIGNATURES).forEach(([key, signature]) => {
+    console.log(`${key}: ${signature}`);
+  });
+
+  while (true) {
+    const persona = await new Promise<string>(resolve => {
+      rl.question('\nSelect a persona (or press Enter for casual): ', resolve);
+    });
+
+    if (!persona) return 'casual';
+    if (Object.keys(PERSONA_PROMPTS).includes(persona as PersonaType)) {
+      return persona as PersonaType;
+    }
+    console.log('Invalid persona, please try again.');
+  }
+}
+
 async function startQueryLoop() {
+  console.log('RAG Query Tool');
+  console.log('=============');
+  
+  const persona = await selectPersona();
+  console.log(`\nSelected Persona: ${PERSONA_SIGNATURES[persona]}`);
+
   while (true) {
     const query = await new Promise<string>(resolve => {
-      rl.question('\nEnter your query (or "exit" to quit): ', resolve);
+      rl.question('\nEnter your query (or "exit" to quit, "switch" to change persona): ', resolve);
     });
 
     if (query.toLowerCase() === 'exit') {
@@ -173,10 +218,12 @@ async function startQueryLoop() {
       process.exit(0);
     }
 
-    await queryDocuments(query);
+    if (query.toLowerCase() === 'switch') {
+      return startQueryLoop();
+    }
+
+    await queryDocuments(query, persona);
   }
 }
 
-console.log('RAG Query Tool');
-console.log('=============');
 startQueryLoop(); 

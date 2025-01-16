@@ -25,14 +25,39 @@ interface SearchResult {
   similarity: number
 }
 
-async function generateDirectResponse(query: string): Promise<string> {
+type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite';
+
+const PERSONA_PROMPTS: Record<PersonaType, string> = {
+  teacher: 'You are a patient and knowledgeable teacher. Explain concepts clearly, use analogies when helpful, and break down complex topics into digestible pieces. Encourage learning and critical thinking.',
+  
+  student: 'You are a fellow student who has already studied this material. Share your understanding in a relatable way, acknowledge when things are complex, and focus on practical examples and study tips.',
+  
+  expert: 'You are a technical expert with deep knowledge. Provide detailed, precise information with technical depth. Don\'t shy away from complexity, but explain it thoroughly.',
+  
+  casual: 'You are a friendly, approachable guide. Keep explanations simple and conversational, use everyday analogies, and make the content engaging and accessible.',
+  
+  mentor: 'You are an experienced mentor who both teaches and guides. Balance technical accuracy with practical advice, share best practices, and help develop problem-solving skills.',
+
+  austinite: 'You are a long-time Austin local who knows the city inside and out. Share your deep knowledge of Austin\'s culture, history, neighborhoods, food scene, music, and hidden gems. Use local slang naturally, reference local landmarks, and give authentic insider perspectives. Keep it weird and friendly, just like Austin.'
+};
+
+const PERSONA_SIGNATURES: Record<PersonaType, string> = {
+  teacher: '📚 Professor Helper',
+  student: '🎓 Fellow Learner',
+  expert: '🔬 Technical Expert',
+  casual: '👋 Friendly Guide',
+  mentor: '🌟 Experienced Mentor',
+  austinite: '�� Austin Local'
+};
+
+async function generateDirectResponse(query: string, persona: PersonaType = 'casual'): Promise<string> {
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-0125-preview',
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful AI assistant that can engage in general conversation while also having access to specific document knowledge when needed. Be concise, clear, and helpful in your responses.'
+          content: `${PERSONA_PROMPTS[persona]} You can engage in general conversation while also having access to specific document knowledge when needed. Be concise, clear, and helpful in your responses. Sign your response with: "${PERSONA_SIGNATURES[persona]}"`
         },
         {
           role: 'user',
@@ -55,7 +80,7 @@ async function generateDirectResponse(query: string): Promise<string> {
   }
 }
 
-async function generateRagResponse(query: string, documents: SearchResult[]): Promise<string> {
+async function generateRagResponse(query: string, documents: SearchResult[], persona: PersonaType = 'casual'): Promise<string> {
   const context = documents
     .map((doc, i) => {
       const source = doc.metadata?.filename || 'Unknown'
@@ -70,7 +95,7 @@ ${context}
 
 Question: ${query}
 
-Answer:`
+Answer (sign your response with: "${PERSONA_SIGNATURES[persona]}"):`
 
   try {
     const completion = await openai.chat.completions.create({
@@ -78,7 +103,7 @@ Answer:`
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that answers questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. If the context is not relevant to the question, say so and provide a general response instead.'
+          content: `${PERSONA_PROMPTS[persona]} Answer questions based on the provided context. Always cite your sources using the provided numbers, and be concise but thorough. If the context is not relevant to the question, say so and provide a general response instead. Sign your response with: "${PERSONA_SIGNATURES[persona]}"`
         },
         {
           role: 'user',
@@ -107,11 +132,18 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('Request body:', body)
 
-    const { query } = body
+    const { query, persona = 'casual' } = body
     if (!query) {
       console.log('No query provided')
       return NextResponse.json(
         { error: 'Query is required' },
+        { status: 400 }
+      )
+    }
+
+    if (!Object.keys(PERSONA_PROMPTS).includes(persona)) {
+      return NextResponse.json(
+        { error: 'Invalid persona type' },
         { status: 400 }
       )
     }
@@ -147,19 +179,20 @@ export async function POST(request: Request) {
     if (documents && documents.length > 0 && documents[0].similarity >= 0.5) {
       // Use RAG with the relevant documents
       console.log('Using RAG response with relevant documents')
-      answer = await generateRagResponse(query, documents)
+      answer = await generateRagResponse(query, documents, persona as PersonaType)
       mode = 'rag'
     } else {
       // Use direct response for general queries or when no relevant docs found
       console.log('Using direct response for query')
-      answer = await generateDirectResponse(query)
+      answer = await generateDirectResponse(query, persona as PersonaType)
     }
 
     console.log('Response generated successfully')
     return NextResponse.json({ 
       answer,
       mode,
-      similarity: documents?.[0]?.similarity || 0
+      similarity: documents?.[0]?.similarity || 0,
+      persona
     }, { status: 200 })
 
   } catch (error) {

@@ -6,6 +6,24 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Send } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite';
+
+const PERSONA_INFO: Record<PersonaType, { label: string, signature: string }> = {
+  teacher: { label: 'Teacher', signature: '📚 Professor Helper' },
+  student: { label: 'Student', signature: '🎓 Fellow Learner' },
+  expert: { label: 'Expert', signature: '🔬 Technical Expert' },
+  casual: { label: 'Casual Guide', signature: '👋 Friendly Guide' },
+  mentor: { label: 'Mentor', signature: '🌟 Experienced Mentor' },
+  austinite: { label: 'Austin Local', signature: '🌵 Austin Local' }
+};
 
 interface Message {
   role: 'user' | 'assistant'
@@ -16,6 +34,7 @@ export function RagAssistant() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType>('casual')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,7 +50,10 @@ export function RagAssistant() {
       const response = await fetch('/api/rag', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: userMessage }),
+        body: JSON.stringify({ 
+          query: userMessage,
+          persona: selectedPersona 
+        }),
       })
 
       console.log('Response status:', response.status)
@@ -61,10 +83,37 @@ export function RagAssistant() {
 
   return (
     <Card className="flex flex-col h-full">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">Chat Assistant</h3>
+          <Select
+            value={selectedPersona}
+            onValueChange={(value: PersonaType) => setSelectedPersona(value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select persona" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(PERSONA_INFO).map(([key, { label, signature }]) => (
+                <SelectItem key={key} value={key}>
+                  <span className="flex items-center gap-2">
+                    <span>{signature}</span>
+                    <span>{label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Currently chatting with: {PERSONA_INFO[selectedPersona].signature}
+        </p>
+      </div>
+
       <ScrollArea className="flex-1 p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
-            Ask me anything about RAG or Gauntlet AI!
+            Ask me anything! I can help with both general questions and specific document knowledge.
           </div>
         ) : (
           messages.map((message, i) => (
@@ -94,6 +143,7 @@ export function RagAssistant() {
           </div>
         )}
       </ScrollArea>
+
       <form onSubmit={handleSubmit} className="p-4 border-t">
         <div className="flex gap-2">
           <Input
