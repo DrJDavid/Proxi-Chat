@@ -8,11 +8,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import supabase from '@/lib/supabase/client'
+import { useUserStore } from '@/store/user'
 
 export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { startPolling } = useUserStore()
   
   // Email login state
   const [email, setEmail] = useState('')
@@ -36,6 +38,9 @@ export default function LoginPage() {
 
       if (error) throw error
 
+      // Start polling for user data immediately after successful login
+      await startPolling()
+      
       router.push('/chat')
       router.refresh()
     } catch (err) {
@@ -65,6 +70,9 @@ export default function LoginPage() {
         })
         if (verifyError) throw verifyError
 
+        // Start polling for user data immediately after successful login
+        await startPolling()
+        
         router.push('/chat')
         router.refresh()
       }
