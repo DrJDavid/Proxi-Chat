@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { FileUpload } from '@/components/chat/file-upload'
-import { EmojiPicker } from '@/components/chat/emoji-picker'
+import { EmojiPickerDialog } from './emoji-picker-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -241,12 +241,50 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
     if (!user) return
 
     try {
+      // Optimistically update the UI
+      const updatedMessages = messages.map(msg => {
+        if (msg.id === messageId) {
+          const existingReaction = msg.reactions?.find(
+            r => r.emoji === emoji && r.user_id === user.id
+          )
+          
+          if (existingReaction) {
+            // Remove the reaction if it exists
+            return {
+              ...msg,
+              reactions: msg.reactions?.filter(r => !(r.emoji === emoji && r.user_id === user.id))
+            }
+          } else {
+            // Add the reaction
+            const newReaction = {
+              id: `temp-${Date.now()}`,
+              emoji,
+              user_id: user.id,
+              message_id: messageId,
+              created_at: new Date().toISOString(),
+              user
+            }
+            return {
+              ...msg,
+              reactions: [...(msg.reactions || []), newReaction]
+            }
+          }
+        }
+        return msg
+      })
+      
+      setMessages(recipient.id, updatedMessages)
+      
+      // Make the API call
       await messageApi.addReaction({
         messageId,
         userId: user.id,
         emoji
       })
+      
+      // Fetch the latest state
       await fetchMessages()
+      setShowEmojiPicker(null)
     } catch (error) {
       console.error('Error adding reaction:', error)
       if (error instanceof Error) {
@@ -254,6 +292,8 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
       } else {
         toast.error('Failed to add reaction')
       }
+      // Revert optimistic update on error
+      await fetchMessages()
     }
   }
 
@@ -463,17 +503,6 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
                                 </DropdownMenu>
                               )}
                             </div>
-                            {showEmojiPicker === message.id && (
-                              <div className="absolute bottom-full right-0 mb-2">
-                                <EmojiPicker
-                                  onEmojiSelect={(emoji) => {
-                                    handleAddReaction(message.id, emoji)
-                                    setShowEmojiPicker(null)
-                                  }}
-                                  onClose={() => setShowEmojiPicker(null)}
-                                />
-                              </div>
-                            )}
                           </div>
                         </div>
                       )}
@@ -552,6 +581,15 @@ export function DirectMessageDialog({ recipient, onClose }: DirectMessageDialogP
           </div>
         </div>
       </DialogContent>
+      <EmojiPickerDialog
+        open={showEmojiPicker !== null}
+        onOpenChange={(open) => setShowEmojiPicker(open ? showEmojiPicker : null)}
+        onEmojiSelect={(emoji) => {
+          if (showEmojiPicker) {
+            handleAddReaction(showEmojiPicker, emoji)
+          }
+        }}
+      />
     </Dialog>
   )
 } 

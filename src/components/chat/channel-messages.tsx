@@ -14,11 +14,8 @@ import { getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { MoreHorizontal, MessageSquare, SmilePlus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
-import data from '@emoji-mart/data'
-import Picker from '@emoji-mart/react'
-import { useTheme } from 'next-themes'
 import { MessageThread } from './MessageThread'
+import { EmojiPickerDialog } from './emoji-picker-dialog'
 
 function formatTimestamp(date: string) {
   const messageDate = new Date(date)
@@ -53,7 +50,6 @@ export function ChannelMessages() {
   const { selectedChannel } = useChannelStore()
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const lastFetchRef = useRef<number>(0)
-  const { theme } = useTheme()
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChannel) return
@@ -307,22 +303,15 @@ export function ChannelMessages() {
         />
       )}
 
-      <Dialog open={showEmojiPicker !== null} onOpenChange={() => setShowEmojiPicker(null)}>
-        <DialogContent className="p-0 border-none">
-          <Picker
-            data={data}
-            onEmojiSelect={(emoji: { native: string }) => {
-              if (showEmojiPicker) {
-                handleReaction(showEmojiPicker, emoji.native)
-                setShowEmojiPicker(null)
-              }
-            }}
-            theme={theme === 'dark' ? 'dark' : 'light'}
-            previewPosition="none"
-            skinTonePosition="none"
-          />
-        </DialogContent>
-      </Dialog>
+      <EmojiPickerDialog
+        open={showEmojiPicker !== null}
+        onOpenChange={(open) => setShowEmojiPicker(open ? showEmojiPicker : null)}
+        onEmojiSelect={(emoji) => {
+          if (showEmojiPicker) {
+            handleReaction(showEmojiPicker, emoji)
+          }
+        }}
+      />
     </div>
   )
 } 
