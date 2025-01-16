@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { LogOut, Settings, Sun, Moon, Laptop, Home, Upload, MessageSquareText } from 'lucide-react'
@@ -26,7 +26,6 @@ import { useUserStore } from '@/lib/store/useUserStore'
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import supabase from '@/lib/supabase/client'
-import { userApi } from '@/lib/api/users'
 import { SearchDialog } from '@/components/chat/search-dialog'
 import { AvatarUploadDialog } from '@/components/chat/avatar-upload-dialog'
 import {
@@ -38,15 +37,22 @@ import {
 
 export function TopNav() {
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, systemTheme } = useTheme()
   const { currentUser: user, setCurrentUser } = useUserStore()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false)
   const [displayName, setDisplayName] = useState(user?.username || '')
   const [status, setStatus] = useState(user?.status_message || '')
   const [isUpdating, setIsUpdating] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // After mounting, we have access to the theme
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   if (!user) return null
+  if (!mounted) return null
 
   const handleLogout = async () => {
     try {
@@ -171,9 +177,9 @@ export function TopNav() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              {theme === 'light' ? (
+              {theme === 'light' || (theme === 'system' && systemTheme === 'light') ? (
                 <Sun className="h-4 w-4" />
-              ) : theme === 'dark' ? (
+              ) : theme === 'dark' || (theme === 'system' && systemTheme === 'dark') ? (
                 <Moon className="h-4 w-4" />
               ) : (
                 <Laptop className="h-4 w-4" />
