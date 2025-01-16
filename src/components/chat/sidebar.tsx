@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Hash, Plus } from 'lucide-react'
+import { Hash, Plus, Users, Bot } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useChannelStore } from '@/store/channel'
 import { useUserStore } from '@/lib/store/useUserStore'
@@ -22,9 +22,10 @@ import { NotificationCounter } from './notification-counter'
 interface UserButtonProps {
   user: User
   onClick: () => void
+  isCurrentUser?: boolean
 }
 
-function UserButton({ user, onClick }: UserButtonProps) {
+function UserButton({ user, onClick, isCurrentUser }: UserButtonProps) {
   return (
     <Button
       variant="ghost"
@@ -42,31 +43,61 @@ function UserButton({ user, onClick }: UserButtonProps) {
         )} />
       </div>
       <div className="flex flex-col items-start">
-        <span className={cn(
-          'truncate',
-          user.status === 'online' ? 'text-foreground' : 'text-muted-foreground'
-        )}>
+        <span className="truncate text-foreground">
           {user.username}
         </span>
-        {user.status_message && (
-          <span className="text-xs text-muted-foreground truncate max-w-[150px]">
-            {user.status_message}
-          </span>
-        )}
+        <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+          {isCurrentUser ? "note to self" : user.status_message}
+        </span>
       </div>
-      <NotificationCounter userId={user.id} />
+      {!isCurrentUser && <NotificationCounter userId={user.id} />}
     </Button>
   )
 }
 
+function AllUsersDialog({ onClose }: { onClose: () => void }) {
+  const { users, currentUser } = useUserStore()
+  const { setSelectedUser } = useDirectMessageStore()
+
+  const handleUserSelect = (user: User) => {
+    setSelectedUser(user)
+    onClose()
+  }
+
+  return (
+    <div className="space-y-2">
+      {users
+        .filter(user => user.id !== currentUser?.id)
+        .map(user => (
+          <UserButton
+            key={user.id}
+            user={user}
+            onClick={() => handleUserSelect(user)}
+          />
+        ))}
+    </div>
+  )
+}
+
+type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite';
+
+const PERSONA_INFO: Record<PersonaType, { label: string, signature: string }> = {
+  teacher: { label: 'Teacher', signature: '📚 Professor Helper' },
+  student: { label: 'Student', signature: '🎓 Fellow Learner' },
+  expert: { label: 'Expert', signature: '🔬 Technical Expert' },
+  casual: { label: 'Casual Guide', signature: '👋 Friendly Guide' },
+  mentor: { label: 'Mentor', signature: '🌟 Experienced Mentor' },
+  austinite: { label: 'Austin Local', signature: '🌵 Austin Local' }
+};
+
 export function Sidebar() {
   const router = useRouter()
   const [recentDmUsers, setRecentDmUsers] = useState<User[]>([])
-  const [displayCount, setDisplayCount] = useState(10)
   const { channels, selectedChannel, setSelectedChannel, fetchChannels } = useChannelStore()
   const { currentUser, users } = useUserStore()
   const { selectedUser, setSelectedUser } = useDirectMessageStore()
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false)
+  const [isAllUsersOpen, setIsAllUsersOpen] = useState(false)
 
   // Function to fetch channels
   const refreshChannels = useCallback(async () => {
@@ -125,10 +156,6 @@ export function Sidebar() {
 
   if (!currentUser) return null
 
-  const filteredUsers = users.filter(u => u.id !== currentUser.id)
-  const displayedUsers = filteredUsers.slice(0, displayCount)
-  const hasMoreUsers = filteredUsers.length > displayCount
-
   const handleChannelSelect = (channel: Channel) => {
     setSelectedChannel(channel)
     router.push(`/chat/channels/${channel.name}`)
@@ -142,13 +169,24 @@ export function Sidebar() {
     <div className="w-64 h-full border-r bg-muted/10">
       <ScrollArea className="h-full">
         <div className="p-4 space-y-4">
+          {/* Current User Profile */}
+          {currentUser && (
+            <div className="mb-4">
+              <UserButton
+                user={currentUser}
+                onClick={() => handleUserSelect(currentUser)}
+                isCurrentUser={true}
+              />
+            </div>
+          )}
+
           {/* Channels Section */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 mb-2">
               <h2 className="text-sm font-semibold">Channels</h2>
               <Dialog open={isCreateChannelOpen} onOpenChange={setIsCreateChannelOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-5 w-5">
+                  <Button variant="ghost" size="icon" className="h-5 w-5 -ml-1">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
@@ -156,9 +194,7 @@ export function Sidebar() {
                   <DialogHeader>
                     <DialogTitle>Create Channel</DialogTitle>
                   </DialogHeader>
-                  <CreateChannel onClose={() => {
-                    setIsCreateChannelOpen(false)
-                  }} />
+                  <CreateChannel onClose={() => setIsCreateChannelOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>
@@ -187,23 +223,25 @@ export function Sidebar() {
               <h2 className="text-sm font-semibold">Direct Messages</h2>
             </div>
 
-            {/* Recent DMs */}
-            {recentDmUsers.length > 0 && (
-              <div className="mb-2 space-y-1">
-                {recentDmUsers.map((user) => (
-                  <UserButton
-                    key={user.id}
-                    user={user}
-                    onClick={() => handleUserSelect(user)}
-                  />
-                ))}
-              </div>
-            )}
+            {/* Recent DMs - Limited to 2 */}
+            <div className="space-y-1">
+              {recentDmUsers.slice(0, 2).map((user) => (
+                <UserButton
+                  key={user.id}
+                  user={user}
+                  onClick={() => handleUserSelect(user)}
+                />
+              ))}
+            </div>
 
             {/* Online Users */}
             <div className="space-y-1">
-              {displayedUsers
-                .filter(user => user.status === 'online' && !recentDmUsers.some(r => r.id === user.id))
+              {users
+                .filter(user => 
+                  user.id !== currentUser.id && 
+                  user.status === 'online' && 
+                  !recentDmUsers.slice(0, 2).some(r => r.id === user.id)
+                )
                 .map((user) => (
                   <UserButton
                     key={user.id}
@@ -213,29 +251,48 @@ export function Sidebar() {
                 ))}
             </div>
 
-            {/* Offline Users */}
+            {/* See More Button */}
+            <Dialog open={isAllUsersOpen} onOpenChange={setIsAllUsersOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full mt-2 justify-start"
+                  size="sm"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  See More
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>All Users</DialogTitle>
+                </DialogHeader>
+                <AllUsersDialog onClose={() => setIsAllUsersOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* RAG Agents Section */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-semibold">RAG Agents</h2>
+            </div>
             <div className="space-y-1">
-              {displayedUsers
-                .filter(user => user.status !== 'online' && !recentDmUsers.some(r => r.id === user.id))
-                .map((user) => (
-                  <UserButton
-                    key={user.id}
-                    user={user}
-                    onClick={() => handleUserSelect(user)}
-                  />
-                ))}
+              {Object.entries(PERSONA_INFO).map(([key, { label, signature }]) => (
+                <Button
+                  key={key}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => router.push(`/chat/rag/${key}`)}
+                >
+                  <Bot className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm">{label}</span>
+                    <span className="text-xs text-muted-foreground">{signature}</span>
+                  </div>
+                </Button>
+              ))}
             </div>
-
-            {/* Load More Button */}
-            {hasMoreUsers && (
-              <Button
-                variant="ghost"
-                className="w-full mt-2"
-                onClick={() => setDisplayCount(prev => prev + 5)}
-              >
-                Load More
-              </Button>
-            )}
           </div>
         </div>
       </ScrollArea>

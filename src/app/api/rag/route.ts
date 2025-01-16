@@ -176,7 +176,7 @@ export async function POST(request: Request) {
     let mode: 'rag' | 'direct' = 'direct'
 
     // Check if we have relevant documents with good similarity
-    if (documents && documents.length > 0 && documents[0].similarity >= 0.5) {
+    if (documents && documents.length > 0 && documents[0].similarity >= 0.3) {
       // Use RAG with the relevant documents
       console.log('Using RAG response with relevant documents')
       answer = await generateRagResponse(query, documents, persona as PersonaType)

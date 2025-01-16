@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useRagConversation } from '@/lib/hooks/useRagConversation'
 
 type PersonaType = 'teacher' | 'student' | 'expert' | 'casual' | 'mentor' | 'austinite';
 
@@ -25,60 +26,22 @@ const PERSONA_INFO: Record<PersonaType, { label: string, signature: string }> = 
   austinite: { label: 'Austin Local', signature: '🌵 Austin Local' }
 };
 
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
+interface RagAssistantProps {
+  initialPersona?: PersonaType
 }
 
-export function RagAssistant() {
-  const [messages, setMessages] = useState<Message[]>([])
+export function RagAssistant({ initialPersona = 'casual' }: RagAssistantProps) {
   const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedPersona, setSelectedPersona] = useState<PersonaType>('casual')
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType>(initialPersona)
+  const { messages, isLoading, sendMessage } = useRagConversation(selectedPersona)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
-    const userMessage = input.trim()
+    const message = input.trim()
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
-    setIsLoading(true)
-
-    try {
-      console.log('Sending request to /api/rag...')
-      const response = await fetch('/api/rag', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: userMessage,
-          persona: selectedPersona 
-        }),
-      })
-
-      console.log('Response status:', response.status)
-      const responseText = await response.text()
-      console.log('Response text:', responseText)
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${responseText}`)
-      }
-      
-      const data = JSON.parse(responseText)
-      if (!data.answer) {
-        throw new Error('No answer in response')
-      }
-
-      setMessages(prev => [...prev, { role: 'assistant', content: data.answer }])
-    } catch (error) {
-      console.error('Error in handleSubmit:', error)
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}` 
-      }])
-    } finally {
-      setIsLoading(false)
-    }
+    await sendMessage(message)
   }
 
   return (
@@ -131,6 +94,11 @@ export function RagAssistant() {
                 }`}
               >
                 {message.content}
+                {message.timestamp && (
+                  <div className="text-xs opacity-50 mt-1">
+                    {new Date(message.timestamp).toLocaleTimeString()}
+                  </div>
+                )}
               </div>
             </div>
           ))

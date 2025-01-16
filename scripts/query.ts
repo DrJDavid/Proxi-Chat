@@ -151,7 +151,7 @@ async function queryDocuments(query: string, persona: PersonaType) {
     let mode: 'rag' | 'direct' = 'direct';
 
     // Check if we have relevant documents with good similarity
-    if (documents && documents.length > 0 && documents[0].similarity >= 0.5) {
+    if (documents && documents.length > 0 && documents[0].similarity >= 0.3) {
       console.log('\nFound relevant documents:');
       documents.forEach((doc: SearchResult, i: number) => {
         const filename = doc.metadata?.filename || 'Unknown';

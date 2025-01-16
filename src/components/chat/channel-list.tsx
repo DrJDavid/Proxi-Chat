@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { channelApi } from '@/lib/api/channels'
 import { type Channel } from '@/types'
@@ -9,8 +10,10 @@ import { useChannelStore } from '@/store/channel'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { ChannelInfo } from './channel-info'
+import { cn } from '@/lib/utils'
 
 export function ChannelList() {
+  const router = useRouter()
   const [channels, setChannels] = useState<Channel[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { fetchChannels } = useChannelStore()
@@ -50,6 +53,14 @@ export function ChannelList() {
     }
   }
 
+  const handleCardClick = (channelId: string, event: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons
+    if ((event.target as HTMLElement).closest('button')) {
+      return
+    }
+    router.push(`/chat/channels/${channelId}`)
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -61,7 +72,14 @@ export function ChannelList() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {channels.map((channel) => (
-        <Card key={channel.id}>
+        <Card 
+          key={channel.id}
+          onClick={(e) => handleCardClick(channel.id, e)}
+          className={cn(
+            "cursor-pointer transition-colors hover:bg-accent/50",
+            "relative" // For proper button click handling
+          )}
+        >
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>{channel.name}</span>
